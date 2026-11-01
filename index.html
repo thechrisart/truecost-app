@@ -493,7 +493,7 @@ const fmtIn = n => lang() === "pt" ? String(n ?? "").replace(".", ",") : String(
 const fmtQty = n => new Intl.NumberFormat(LOCALE[lang()], { maximumFractionDigits: 2 }).format(num(n));
 const clone = o => JSON.parse(JSON.stringify(o));
 let toastT;
-function toast(msg){ let el = $(".toast"); if(!el){ el = document.createElement("div"); el.className = "toast"; el.setAttribute("role","status"); document.body.appendChild(el); } el.textContent = msg; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => el.hidden = true, 2600); }
+function toast(msg, ms){ let el = $(".toast"); if(!el){ el = document.createElement("div"); el.className = "toast"; el.setAttribute("role","status"); document.body.appendChild(el); } el.textContent = msg; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => el.hidden = true, ms || (msg.length > 90 ? 7000 : 2600)); }
 function money(v, cur){ cur = cur || state.settings.currency || "USD"; try{ return new Intl.NumberFormat(LOCALE[lang()], { style:"currency", currency:cur }).format(v || 0); }catch{ return (v || 0).toFixed(2); } }
 const fmtStamp = ts => new Date(ts).toLocaleString(LOCALE[lang()], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" });
 const fmtDate = ts => new Date(ts).toLocaleDateString(LOCALE[lang()], { month:"short", day:"numeric", year:"numeric" });
@@ -701,13 +701,23 @@ const RUN_LS = "truecost.aiRun";
 const markRun = on => { try{ on ? localStorage.setItem(RUN_LS, JSON.stringify({ t:Date.now(), model:state.settings.localModel })) : localStorage.removeItem(RUN_LS); }catch{} };
 async function localAsk(prompt, opts = {}){
   markRun(true);
-  try{ return await localAskInner(prompt, opts); } finally { markRun(false); }
+  try{
+    try{ return await localAskInner(prompt, opts); }
+    catch(e){
+      // iOS takes the GPU back while the app waits (answering questions, locking the screen): reload the model and try once more.
+      if(e?.code !== "local_fail" || !/device|lost|instance/i.test(e.message || "") || opts.signal?.aborted) throw e;
+      return await localAskInner(prompt, opts);
+    }
+  } finally { markRun(false); }
 }
 async function localAskInner(prompt, opts = {}){
   let eng;
   try{ eng = await getLocalEngine(opts.onProgress); }
   catch(e){ throw e?.code ? e : { code:"local_fail", message:String(e?.message || e) }; }
-  const req = { stream:true, temperature:0.2, max_tokens:2000, frequency_penalty:0.3,
+  // Prompt and answer share the 4096-token window (~3 characters per token); leave the rest for the answer.
+  const room = 4000 - Math.ceil((prompt.length + 120) / 3);
+  if(room < 500) throw { code:"local_fail", message:`prompt too long (${prompt.length} chars)` };
+  const req = { stream:true, temperature:0.2, max_tokens:Math.min(1800, room), frequency_penalty:0.3,
     messages:[{ role:"system", content:"You are a careful construction cost estimator. Answer only in the requested format." }, { role:"user", content:prompt }] };
   if(opts.schema) req.response_format = { type:"json_object", schema: JSON.stringify(opts.schema) };
   const stop = () => { try{ eng.interruptGenerate(); }catch{} };
@@ -717,9 +727,12 @@ async function localAskInner(prompt, opts = {}){
     const chunks = await eng.chat.completions.create(req);
     for await (const c of chunks){ const d = c.choices?.[0]?.delta?.content || ""; if(d){ text += d; opts.onText?.({ text, delta:d }); } }
   }catch(e){
-    try{ await localEngine?.unload(); }catch{}
-    localEngine = null; localEngineId = null;   // a lost GPU device leaves the engine unusable; reload it next time
-    throw { code:"local_fail", message:String(e?.message || e) };
+    const msg = String(e?.message || e);
+    if(/device|lost|gpu|memory|instance/i.test(msg)){   // a lost GPU device leaves the engine unusable; reload it next time
+      try{ await localEngine?.unload(); }catch{}
+      localEngine = null; localEngineId = null;
+    }
+    throw { code:"local_fail", message:msg };
   }
   finally{ opts.signal?.removeEventListener("abort", stop); }
   if(opts.signal?.aborted) throw { code:"cancelled" };
@@ -743,13 +756,16 @@ async function initAI(){
   }catch{}
   render();
 }
-const aiErr = e => (STR[lang()].err[e?.code]) || t("err").fallback || STR.en.err.fallback;
+const aiErr = e => {
+  const base = STR[lang()].err[e?.code] || STR[lang()].err.fallback || STR.en.err.fallback;
+  return e?.code === "local_fail" && e.message ? `${base} [${e.message.slice(0, 160)}]` : base;   // the detail tells us what broke on the phone
+};
 
 const unitsBlock = () => state.settings.units === "metric"
   ? { sys:"metric: m, cm, m², linear m, L, kg", scale:"standard door 2.10 × 0.80 m; outlet ~0.30 m above the floor; light switch ~1.10 m; countertop ~0.90 m; residential ceiling ~2.6–2.8 m; tiles and boards of known size",
-      ex:'{"label":"Wall area","value":32.5,"unit":"m²","basis":"estimated from the 2.10 m door"}', units:"ea|m²|m|hr|L|bag|lot|day" }
+      ex:'{"label":"<what you measured>","value":<number>,"unit":"m²","basis":"<reference you used>"}', units:"ea|m²|m|hr|L|bag|lot|day" }
   : { sys:"US customary/imperial: ft, in, sq ft, linear ft (LF), gal, lb", scale:"standard interior door 6'8\" × 30–36\"; outlets ~12–16 in above the floor; light switches ~48 in; countertops 36 in; base cabinets 34.5 in; wall cabinets typically 30–42 in; ceilings usually 8–9 ft; drywall sheets 4 × 8 ft; tiles and boards of known size",
-      ex:'{"label":"Wall area","value":350,"unit":"sq ft","basis":"estimated from the standard 6\'8\\" door"}', units:"ea|sq ft|LF|hr|gal|bag|lot|day" };
+      ex:'{"label":"<what you measured>","value":<number>,"unit":"sq ft","basis":"<reference you used>"}', units:"ea|sq ft|LF|hr|gal|bag|lot|day" };
 
 function ctxBlock(){
   const s = state.settings, u = unitsBlock();
@@ -817,6 +833,41 @@ ${ESTIMATE_RULES()}
 
 Reply ONLY with JSON in this shape:
 ${estimateSchema()}`;
+
+/* Compact prompts for the on-device model: small context window, and the output shape is enforced by the schema. */
+function localCtx(){
+  const s = state.settings, u = unitsBlock();
+  const pb = state.pricebook.slice(0, 25).map(x => `${x.name} | ${x.unit} | ${x.price}`).join("\n");
+  return `Region: ${s.region || "United States"}. Currency: ${s.currency}. Units: ${u.units.replace(/\|/g, ", ")}. Labor rate: ${s.laborRate} ${s.currency}/hr.
+${pb ? `Use these exact prices when an item matches (name | unit | price):\n${pb}\n` : ""}Write all text in ${LANG_NAME[lang()]}.`;
+}
+const LOCAL_ANALYZE_PROMPT = d => `Understand this construction job before pricing it.
+${localCtx()}
+Job: """${d.description}"""
+Location: ${d.location || state.settings.region || "United States"}
+Give: a short title, project type, trades, a 2-sentence summary, observations that affect cost, the measurements stated or implied in the description (use the user's numbers; "basis" says where each came from), and up to 4 questions with 2-3 short options each, only if the answer changes the price.`;
+const LOCAL_ESTIMATE_PROMPT = (p, d) => {
+  const a = p.analysis || {};
+  const meas = (a.measurements || []).map(m => `${m.label}: ${m.value} ${m.unit}`).join("; ");
+  const ans = d.answers.map(x => `${x.question} ${x.answer}`).join("; ");
+  return `Make a line-item construction estimate.
+${localCtx()}
+Job: """${p.description}"""
+Summary: ${a.summary || ""}
+Measurements: ${meas || "see job"}
+Answers: ${ans || "none"}
+Rules: up to 4 phases in work order; in each, up to 6 items: materials (kind "material"), labor (kind "labor"), other costs like disposal or dumpster (kind "other"). Quantities from the measurements plus normal waste, rounded to package sizes. unitPrice = current local price per unit, without profit, tax or contingency. durationDays = work days. rangePct = uncertainty 5 to 40. 0 to 2 upsells.`;
+};
+const LOCAL_REFINE_PROMPT = (p, instr) => {
+  const lines = p.estimate.groups.map(g => g.items.map(it => `${g.name} | ${it.kind} | ${it.name} | ${it.qty} | ${it.unit} | ${it.unitPrice}`).join("\n")).join("\n");
+  return `Update this construction estimate as the user asks. Keep unaffected lines exactly as they are.
+${localCtx()}
+Job: ${p.name}
+Current lines (phase | kind | name | qty | unit | unitPrice):
+${lines}
+User request: """${instr}"""
+Return the full updated estimate with a one-sentence changeNote.`;
+};
 
 const REFINE_PROMPT = (p, instr) => `You are a senior construction estimator. Update the estimate below as the user asks and return the COMPLETE updated estimate.
 
@@ -1211,7 +1262,7 @@ async function doAnalyze(){
   d.description = $("#desc").value.trim(); d.location = $("#loc").value.trim();
   const imgs = photosToAI() ? d.photos.map(p => p.blob) : [];
   try{
-    const a = await runAI("busyAnalyze", ANALYZE_PROMPT({ nPhotos: imgs.length, description: d.description, location: d.location }), { schema:ANALYSIS_SCHEMA, ...(imgs.length ? { images: imgs } : {}) });
+    const a = await runAI("busyAnalyze", (state.sample?.local ? LOCAL_ANALYZE_PROMPT : ANALYZE_PROMPT)({ nPhotos: imgs.length, description: d.description, location: d.location }), { schema:ANALYSIS_SCHEMA, ...(imgs.length ? { images: imgs } : {}) });
     if(!a || typeof a !== "object") throw { code:"invalid_json" };
     a.questions = (Array.isArray(a.questions) ? a.questions : []).slice(0, 5).map((q, i) => ({ id: String(q.id || "q" + (i + 1)), question: String(q.question || ""), options: Array.isArray(q.options) ? q.options.map(String).slice(0, 4) : [] })).filter(q => q.question);
     a.measurements = (Array.isArray(a.measurements) ? a.measurements : []).map(m => ({ label:String(m.label || ""), value:m.value, unit:String(m.unit || ""), basis: m.basis ? String(m.basis) : "" }));
@@ -1233,7 +1284,7 @@ async function doEstimate(){
   p.answers = answers;
   const imgs = photosToAI() ? d.photos.map(x => x.blob) : [];
   try{
-    const e = normalizeEstimate(await runAI("busyEstimate", ESTIMATE_PROMPT(p, { answers, nPhotos: imgs.length }), { schema:ESTIMATE_SCHEMA, ...(imgs.length ? { images: imgs } : {}) }));
+    const e = normalizeEstimate(await runAI("busyEstimate", (state.sample?.local ? LOCAL_ESTIMATE_PROMPT : ESTIMATE_PROMPT)(p, { answers, nPhotos: imgs.length }), { schema:ESTIMATE_SCHEMA, ...(imgs.length ? { images: imgs } : {}) }));
     p.estimate = e; if(e.title) p.name = e.title;
     saveProject(p, true);
     d.photos.forEach(x => URL.revokeObjectURL(x.url));
@@ -1248,7 +1299,7 @@ async function doRefine(p){
   const instr = $("#refine").value.trim(); if(!instr) return;
   state.refineDraft = instr;
   try{
-    const e = normalizeEstimate(await runAI("busyRefine", REFINE_PROMPT(p, instr), { cache:false, schema:ESTIMATE_SCHEMA }));
+    const e = normalizeEstimate(await runAI("busyRefine", (state.sample?.local ? LOCAL_REFINE_PROMPT : REFINE_PROMPT)(p, instr), { cache:false, schema:ESTIMATE_SCHEMA }));
     p.estimate = e; state.refineDraft = ""; saveProject(p, true); toast(t("updated"));
   }catch(err){ if(err?.code !== "cancelled") toast(aiErr(err)); }
   render();
