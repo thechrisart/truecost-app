@@ -188,6 +188,7 @@ ul.clean{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
 .meas{display:grid;grid-template-columns:1fr 90px 64px;gap:8px;align-items:center}
 .meas .in{padding:7px 9px;font-size:14px}
+.saved{display:flex;gap:6px;align-items:center;color:var(--good)}
 .langsw{margin-left:auto;display:inline-flex;border:1px solid color-mix(in srgb,var(--chrome-ink) 30%,transparent);border-radius:7px;overflow:hidden;flex:none}
 .langsw button{background:none;border:0;color:inherit;font-size:12px;font-weight:600;letter-spacing:.05em;padding:5px 8px;opacity:.7}
 .langsw button[aria-pressed="true"]{background:var(--mark);color:var(--mark-ink);opacity:1}
@@ -212,6 +213,7 @@ const I = {
   gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
   back:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
   spark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>',
+  pdf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5"/><path d="M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg>',
   plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
 };
 
@@ -289,6 +291,10 @@ en:{
   storageFull:"Storage is full. Export a backup and delete old estimates.", loadFail:"Couldn't load your estimates right now.",
   pickT:"Add from my price list", close:"Close", notGiven:"not given", extraQ:"Additional notes",
   quoteT:"Estimate", validFor:"valid for 15 days", directCost:"Direct cost", durationL:"Estimated duration", daysN:"{n} day(s)",
+  genPdf:"Generate PDF", pdfMaking:"Creating PDF…", pdfDone:"PDF ready.", pdfFail:"Couldn't create the PDF. Check your connection and try again.",
+  pdfPhotos:"Site photos", likely:"Likely range", acceptT:"Acceptance", acceptP:"By signing below, the client accepts this estimate and its terms.",
+  sigClient:"Client signature", sigDate:"Date", pageOf:"Page {a} of {b}", genWith:"Generated with TrueCost", preparedFor:"Prepared by",
+  savedDb:"Saved automatically to your Claude account", savedDev:"Saved automatically on this device", savedAt:"last change {d}",
   csvHead:["Phase","Type","Item","Qty","Unit","Unit price","Total"], newProject:"New estimate",
   err:{ not_granted:"You haven't allowed this page to use Claude.", sampling_disabled:"Claude isn't available for this account.",
     rate_limited:"Too many requests in a row. Wait a bit and try again.", image_rejected:"One of the photos couldn't be read. Try another.",
@@ -366,6 +372,10 @@ es:{
   storageFull:"Almacenamiento lleno. Exporta un respaldo y elimina presupuestos viejos.", loadFail:"No pude cargar tus presupuestos ahora.",
   pickT:"Agregar de mi lista de precios", close:"Cerrar", notGiven:"no indicado", extraQ:"Notas adicionales",
   quoteT:"Presupuesto", validFor:"válido por 15 días", directCost:"Costo directo", durationL:"Duración estimada", daysN:"{n} día(s)",
+  genPdf:"Generar PDF", pdfMaking:"Creando el PDF…", pdfDone:"PDF listo.", pdfFail:"No se pudo crear el PDF. Revisa tu conexión e inténtalo de nuevo.",
+  pdfPhotos:"Fotos de la obra", likely:"Rango probable", acceptT:"Aceptación", acceptP:"Al firmar abajo, el cliente acepta este presupuesto y sus condiciones.",
+  sigClient:"Firma del cliente", sigDate:"Fecha", pageOf:"Página {a} de {b}", genWith:"Generado con TrueCost", preparedFor:"Preparado por",
+  savedDb:"Guardado automáticamente en tu cuenta de Claude", savedDev:"Guardado automáticamente en este dispositivo", savedAt:"último cambio {d}",
   csvHead:["Etapa","Tipo","Partida","Cant.","Unidad","Precio unitario","Total"], newProject:"Nuevo presupuesto",
   err:{ not_granted:"No autorizaste a esta página a usar Claude.", sampling_disabled:"Claude no está disponible en esta cuenta.",
     rate_limited:"Demasiadas solicitudes seguidas. Espera un poco e inténtalo de nuevo.", image_rejected:"Una de las fotos no se pudo leer. Prueba otra.",
@@ -443,6 +453,10 @@ pt:{
   storageFull:"Armazenamento cheio. Exporte um backup e exclua orçamentos antigos.", loadFail:"Não consegui carregar seus orçamentos agora.",
   pickT:"Adicionar da minha tabela", close:"Fechar", notGiven:"não informado", extraQ:"Observações adicionais",
   quoteT:"Orçamento", validFor:"válido por 15 dias", directCost:"Custo direto", durationL:"Prazo estimado", daysN:"{n} dia(s)",
+  genPdf:"Gerar PDF", pdfMaking:"Criando o PDF…", pdfDone:"PDF pronto.", pdfFail:"Não consegui criar o PDF. Verifique a conexão e tente de novo.",
+  pdfPhotos:"Fotos do local", likely:"Faixa provável", acceptT:"Aceite", acceptP:"Ao assinar abaixo, o cliente aceita este orçamento e suas condições.",
+  sigClient:"Assinatura do cliente", sigDate:"Data", pageOf:"Página {a} de {b}", genWith:"Gerado com TrueCost", preparedFor:"Preparado por",
+  savedDb:"Salvo automaticamente na sua conta Claude", savedDev:"Salvo automaticamente neste aparelho", savedAt:"última alteração {d}",
   csvHead:["Etapa","Tipo","Item","Qtd","Unidade","Preço unitário","Total"], newProject:"Novo orçamento",
   err:{ not_granted:"Você não autorizou o uso do Claude nesta página.", sampling_disabled:"O Claude não está disponível nesta conta.",
     rate_limited:"Muitas solicitações seguidas. Aguarde um pouco e tente de novo.", image_rejected:"Uma das fotos não pôde ser lida. Tente outra foto.",
@@ -474,6 +488,7 @@ const clone = o => JSON.parse(JSON.stringify(o));
 let toastT;
 function toast(msg){ let el = $(".toast"); if(!el){ el = document.createElement("div"); el.className = "toast"; el.setAttribute("role","status"); document.body.appendChild(el); } el.textContent = msg; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => el.hidden = true, 2600); }
 function money(v, cur){ cur = cur || state.settings.currency || "USD"; try{ return new Intl.NumberFormat(LOCALE[lang()], { style:"currency", currency:cur }).format(v || 0); }catch{ return (v || 0).toFixed(2); } }
+const fmtStamp = ts => new Date(ts).toLocaleString(LOCALE[lang()], { month:"short", day:"numeric", hour:"numeric", minute:"2-digit" });
 const fmtDate = ts => new Date(ts).toLocaleDateString(LOCALE[lang()], { month:"short", day:"numeric", year:"numeric" });
 
 /* ---------- defaults ---------- */
@@ -934,7 +949,7 @@ function vProject(p){
   const th = (p.thumbs || []).map(u => `<div class="ph"><img src="${u}" alt="${t("sitePhoto")}"></div>`).join("");
   const adjRow = (id, k, label, val) => `<div class="r"><label class="grow" for="${id}">${label}</label><input class="in num" id="${id}" inputmode="decimal" data-act="adj" data-k="${k}" value="${esc(fmtIn(a[k]))}"><span class="small muted">%</span><span class="num">${pm(p, val)}</span></div>`;
   return `
-  ${p.example ? `<div class="note">${t("exampleBanner")}</div>` : ""}
+  ${p.example ? `<div class="note">${t("exampleBanner")}</div>` : `<div class="saved small"><span aria-hidden="true">✓</span>${state.storeMode === "db" ? t("savedDb") : t("savedDev")} · ${esc(t("savedAt", { d:fmtStamp(p.updatedAt) }))}</div>`}
   <section class="card pad total">
     <div class="row"><span class="eyebrow grow">${t("totalEst")}</span><span class="badge">${esc(t("confidence", { c:e.confidence || "—" }))}</span></div>
     <div class="big"><span class="hl">${pm(p, tt.total)}</span></div>
@@ -974,6 +989,7 @@ function vProject(p){
       <button class="btn" data-act="exporthtml">${t("dlQuote")}</button>
       <button class="btn" data-act="exportcsv">${t("dlCsv")}</button>
     </div>
+    <button class="btn primary big" data-act="pdf" ${state.pdfBusy ? "disabled" : ""}>${I.pdf} ${state.pdfBusy ? t("pdfMaking") : t("genPdf")}</button>
     ${state.clientMsg ? `<div class="card pad stack"><span class="eyebrow">${t("msgT")}</span>${state.clientMsg.loading ? `<div class="scan"></div>` : `<div class="msgbox" id="msgbox">${esc(state.clientMsg.text)}</div><button class="btn" data-act="copymsg">${t("copyMsg")}</button>`}</div>` : ""}
   </section>
   ${p.example ? "" : `<button class="btn" data-act="dup">${t("dup")}</button>${dangerZone(p)}`}`;
@@ -1171,8 +1187,8 @@ async function download(filename, data){
     catch(e){ if(e?.code !== "cancelled" && e?.code !== "declined") toast(t("notSaved")); }
     return;
   }
-  const type = filename.endsWith(".csv") ? "text/csv" : filename.endsWith(".json") ? "application/json" : "text/html";
-  const url = URL.createObjectURL(new Blob([data], { type: type + ";charset=utf-8" }));
+  const type = filename.endsWith(".csv") ? "text/csv;charset=utf-8" : filename.endsWith(".json") ? "application/json;charset=utf-8" : filename.endsWith(".pdf") ? "application/pdf" : "text/html;charset=utf-8";
+  const url = URL.createObjectURL(data instanceof Blob ? data : new Blob([data], { type }));
   const a = document.createElement("a"); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000);
   toast(t("downloaded"));
@@ -1182,6 +1198,122 @@ async function copy(text){
   catch{ const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); toast(t("copied")); }catch{ toast(t("copyManual")); } ta.remove(); }
 }
 const slug = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "estimate";
+
+/* ---------- PDF ---------- */
+const PDF_LIBS = ["https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js", "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"];
+const loadScript = src => new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+let pdfLib = null;
+const loadPDF = () => (pdfLib ||= (async () => { for(const u of PDF_LIBS) await loadScript(u); return window.jspdf.jsPDF; })().catch(e => { pdfLib = null; throw e; }));
+/* The built-in PDF fonts only cover Latin-1 (WinAnsi): map the few typographic characters the AI uses, drop the rest. */
+const pdfText = s => String(s ?? "").replace(/[\u202F\u2009]/g, " ").replace(/≈/g, "~").replace(/′/g, "'").replace(/″/g, '"').replace(/■/g, "-")
+  .replace(/[^\x00-\xFF\u2013\u2014\u2018\u2019\u201C\u201D\u2022\u2026\u20AC]/g, "");
+const imgSize = src => new Promise(res => { const im = new Image(); im.onload = () => res([im.naturalWidth, im.naturalHeight]); im.onerror = () => res(null); im.src = src; });
+
+async function buildPDF(p){
+  const jsPDF = await loadPDF();
+  const doc = new jsPDF({ unit:"pt", format: state.settings.units === "metric" ? "a4" : "letter" });
+  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 48, CW = W - M * 2;
+  const INK = [22,32,43], MUTED = [91,103,115], LINE = [211,217,223], SUNK = [238,240,242], MARK = [245,197,24];
+  const tt = totals(p), e = p.estimate, s = state.settings, $m = v => pdfText(pm(p, v));
+  let y = 0;
+  const need = h => { if(y + h > H - M - 24){ doc.addPage(); y = M; } };
+  const para = (txt, size = 10, color = INK, gap = 4) => {
+    doc.setFont("helvetica", "normal"); doc.setFontSize(size); doc.setTextColor(...color);
+    for(const line of doc.splitTextToSize(pdfText(txt), CW)){ need(size * 1.35); doc.text(line, M, y + size); y += size * 1.35; }
+    y += gap;
+  };
+  const heading = txt => { need(28); y += 8; doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(...MUTED); doc.text(pdfText(txt).toUpperCase(), M, y + 9, { charSpace: .6 }); y += 16; };
+
+  // header band
+  doc.setFillColor(...INK); doc.rect(0, 0, W, 76, "F");
+  doc.setFillColor(...MARK); doc.lines([[7,7],[-7,7],[-7,-7],[7,-7]], M + 7, 31, [1,1], "F", true);
+  doc.setTextColor(255,255,255); doc.setFont("helvetica", "bold"); doc.setFontSize(17);
+  doc.text(pdfText(s.company || "TrueCost"), M + 22, 43);
+  doc.setFontSize(10); doc.setTextColor(...MARK); doc.text(pdfText(t("quoteT")).toUpperCase(), W - M, 34, { align:"right", charSpace: 1 });
+  doc.setFont("helvetica", "normal"); doc.setTextColor(220,226,232); doc.text(pdfText(fmtDate(Date.now())), W - M, 50, { align:"right" });
+  y = 104;
+
+  // title block
+  doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.setTextColor(...INK);
+  for(const line of doc.splitTextToSize(pdfText(p.name), CW)){ doc.text(line, M, y); y += 24; }
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...MUTED);
+  doc.text(pdfText([p.location, t("validFor")].filter(Boolean).join("  ·  ")), M, y); y += 20;
+  para(e.scope || p.description, 10.5, INK, 6);
+
+  // photos
+  const thumbs = (p.thumbs || []).slice(0, 4);
+  if(thumbs.length){
+    heading(t("pdfPhotos"));
+    const gap = 10, bw = (CW - gap * 3) / 4, bh = bw * .75; need(bh + 6);
+    for(let i = 0; i < thumbs.length; i++){
+      const sz = await imgSize(thumbs[i]); if(!sz) continue;
+      const k = Math.min(bw / sz[0], bh / sz[1]), w = sz[0] * k, h = sz[1] * k, x = M + i * (bw + gap);
+      doc.setFillColor(...SUNK); doc.rect(x, y, bw, bh, "F");
+      try{ doc.addImage(thumbs[i], "JPEG", x + (bw - w) / 2, y + (bh - h) / 2, w, h); }catch{}
+    }
+    y += bh + 10;
+  }
+
+  // line items
+  const body = [];
+  e.groups.forEach(g => {
+    body.push([{ content:pdfText(g.name), colSpan:4, styles:{ fontStyle:"bold", fillColor:SUNK } }, { content:$m(groupSum(g)), styles:{ fontStyle:"bold", fillColor:SUNK, halign:"right" } }]);
+    g.items.forEach(it => body.push([pdfText(it.name), pdfText(fmtQty(it.qty)), pdfText(it.unit), $m(it.unitPrice), $m(num(it.qty) * num(it.unitPrice))]));
+  });
+  doc.autoTable({
+    startY: y + 4, margin: { left:M, right:M, bottom:M + 24 }, theme:"plain",
+    head: [[t("item"), t("qty"), t("unit"), t("unitPrice"), t("total")].map(pdfText)],
+    body,
+    styles: { font:"helvetica", fontSize:9.5, textColor:INK, cellPadding:{ top:5, bottom:5, left:6, right:6 }, lineColor:LINE, lineWidth:{ bottom:.5 } },
+    headStyles: { fontStyle:"bold", fontSize:8.5, textColor:MUTED, lineWidth:{ bottom:1 }, lineColor:INK },
+    columnStyles: { 1:{ halign:"right", cellWidth:50 }, 2:{ cellWidth:52 }, 3:{ halign:"right", cellWidth:80 }, 4:{ halign:"right", cellWidth:86 } },
+    didParseCell: d => { if(d.section === "head" && d.column.index !== 0 && d.column.index !== 2) d.cell.styles.halign = "right"; }
+  });
+  y = doc.lastAutoTable.finalY + 14;
+
+  // totals
+  const rows = [[t("directCost"), tt.sub], tt.cont && [t("contingency") + ` (${fmtQty(p.adj.contingency)}%)`, tt.cont], tt.mk && [t("markup") + ` (${fmtQty(p.adj.markup)}%)`, tt.mk], tt.tax && [t("tax") + ` (${fmtQty(p.adj.tax)}%)`, tt.tax]].filter(Boolean);
+  const TX = W - M - 250;
+  need(rows.length * 18 + 60);
+  doc.setFontSize(10);
+  rows.forEach(([l, v]) => { doc.setFont("helvetica", "normal"); doc.setTextColor(...MUTED); doc.text(pdfText(l), TX, y + 10); doc.setTextColor(...INK); doc.text($m(v), W - M, y + 10, { align:"right" }); y += 18; });
+  doc.setDrawColor(...INK); doc.setLineWidth(1.2); doc.line(TX, y + 2, W - M, y + 2); y += 8;
+  doc.setFillColor(...MARK); doc.rect(TX - 6, y, W - M - TX + 12, 28, "F");
+  doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.setTextColor(27,22,0);
+  doc.text(pdfText(t("total")).toUpperCase(), TX, y + 19); doc.text($m(tt.total), W - M, y + 19, { align:"right" }); y += 40;
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...MUTED);
+  doc.text(pdfText(`${t("likely")}: ${pm(p, tt.low)} – ${pm(p, tt.high)}`), W - M, y, { align:"right" }); y += 12;
+
+  // terms
+  if(e.durationDays){ heading(t("durationL")); para(t("daysN", { n:e.durationDays }) + (e.crew ? " · " + e.crew : "")); }
+  if(e.assumptions.length){ heading(t("assumptions")); e.assumptions.forEach(x => para("•  " + x, 10, INK, 0)); y += 4; }
+  if(e.exclusions.length){ heading(t("exclusions")); e.exclusions.forEach(x => para("•  " + x, 10, INK, 0)); y += 4; }
+
+  // acceptance
+  need(110); heading(t("acceptT")); para(t("acceptP"), 9.5, MUTED, 30);
+  doc.setDrawColor(...MUTED); doc.setLineWidth(.6);
+  doc.line(M, y, M + CW * .6, y); doc.line(M + CW * .68, y, W - M, y);
+  doc.setFontSize(8.5); doc.setTextColor(...MUTED);
+  doc.text(pdfText(t("sigClient")), M, y + 12); doc.text(pdfText(t("sigDate")), M + CW * .68, y + 12);
+
+  // footer on every page
+  const n = doc.getNumberOfPages();
+  for(let i = 1; i <= n; i++){
+    doc.setPage(i); doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...MUTED);
+    doc.text(pdfText(`${s.company ? s.company + "  ·  " : ""}${t("genWith")}`), M, H - 26);
+    doc.text(pdfText(t("pageOf", { a:i, b:n })), W - M, H - 26, { align:"right" });
+  }
+  return doc.output("blob");
+}
+async function doPDF(p){
+  if(state.pdfBusy) return;
+  state.pdfBusy = true; render();
+  try{
+    const blob = await buildPDF(p);
+    state.pdfBusy = false; render();
+    await download(`${slug(t("quoteT"))}-${slug(p.name)}.pdf`, blob);
+  }catch(e){ console.warn(e); state.pdfBusy = false; render(); toast(t("pdfFail")); }
+}
 
 /* ---------- events ---------- */
 document.addEventListener("click", e => {
@@ -1229,6 +1361,7 @@ document.addEventListener("click", e => {
     case "copymsg": copy(state.clientMsg?.text || ""); break;
     case "copytext": copy(plainText(p)); break;
     case "exporthtml": download(`${slug(t("quoteT"))}-${slug(p.name)}.html`, quoteHTML(p)); break;
+    case "pdf": doPDF(p); break;
     case "exportcsv": download(`${slug(t("quoteT"))}-${slug(p.name)}.csv`, csv(p)); break;
     case "dup": { const c = clone(p); c.id = uid(); c.name = t("copyOf", { n:p.name }); c.createdAt = Date.now(); state.projects.push(c); saveProject(c, true); go({ name:"project", id:c.id }); toast(t("copyCreated")); break; }
     case "askdel": state.confirmDelete = true; render(); break;
