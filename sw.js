@@ -1,7 +1,7 @@
 /* TrueCost offline cache.
    The page itself is network-first (so updates arrive when online, cached copy when offline);
    pinned libraries and fonts are cache-first. WebLLM keeps the model weights in its own caches. */
-const CACHE = "truecost-v4";
+const CACHE = "truecost-v5";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 // Libraries the app imports at run time; stored up front so on-device AI and PDF work offline from the first install.
 const LIBS = [

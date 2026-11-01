@@ -220,6 +220,7 @@ const I = {
 
 /* ---------- runtime: inside Claude (artifact) or a normal web page ---------- */
 const IN_CLAUDE = !!(window.claude && typeof window.claude.use === "function");
+const APP_VERSION = "2026.11.01-9";   // same build is published to Claude and GitHub Pages; shown in Settings
 
 /* ---------- i18n ---------- */
 const LANGS = { en:"EN", es:"ES", pt:"PT" };
@@ -294,6 +295,7 @@ en:{
   quoteT:"Estimate", validFor:"valid for 15 days", directCost:"Direct cost", durationL:"Estimated duration", daysN:"{n} day(s)",
   engineT:"AI engine", engLocal:"On this device", engApi:"Anthropic API key", localT:"On-device AI", localHelp:"Runs entirely on this phone with the graphics chip: no key, no cost, works offline after a one-time download. It reads your description and measurements (not the photos) and is less precise than Claude, so keep My prices up to date.", mFast:"Light (recommended)", mBetter:"Better", mFastSub:"Qwen2.5 1.5B · about 1 GB · uses the least memory", mBetterSub:"Qwen2.5 3B · about 2 GB · more accurate; iOS may close it on phones with less memory", dl:"Download model", ready:"Ready · works offline", notDl:"Not downloaded", removeModel:"Remove from device", modelRemoved:"Model removed from this device.", loadingModel:"Loading the AI model", noWebGPU:"This browser can't run on-device AI (it needs WebGPU). On iPhone use Safari on iOS 26 or newer. You can still use an Anthropic API key.", localPhotoNote:"The on-device AI reads your description and measurements, not the photos. Include sizes and materials in the description.", aiOffLocal:"Download the on-device AI model once in Settings. After that it works offline, without a key.", openSettings:"Open Settings", dlKeepOpen:"Keep this screen open while it downloads.", localThinking:"Running on this device. Keep the app open; this can take 1–3 minutes.", crashNote:"Last time iOS closed the app while the AI was running (out of memory). Close other apps and try again.", crashSwitched:"Last time iOS closed the app while the AI was running (out of memory). Switched to the Light model: download it in Settings and try again.", draftRestored:"Your description was kept.",
   chargeAdd:"Add what I charged", chargeT:"What you charged", chargeL:"Price you quoted or charged the client ({c})", chargePh:"e.g. 4,500", chargeSave:"Save", chargeEdit:"Edit", chargeDel:"Remove", cmpEst:"TrueCost estimate", cmpYou:"You charged", diffAbove:"{p}% above the estimate", diffBelow:"{p}% below the estimate", diffSame:"Same as the estimate", grossM:"Gross margin over direct cost: {m} ({p}%)", effRate:"Effective labor rate: {r}/hr over {h} hr (after materials and other costs)", lossWarn:"Below direct cost: this job loses {v}.", histT:"Your pricing", histLine:"{n} job(s) with your price · on average {p}% {dir} TrueCost", histAbove:"above", histBelow:"below", suggest:"Based on your past jobs you'd likely charge about {v}", chargedBadge:"charged {v}",
+  engClaude:"Your Claude account", engClaudeNote:"On-device AI runs only in the web version (thechrisart.github.io/truecost-app): Claude doesn't allow downloading the model.", verLine:"TrueCost {v} · {where}", whereClaude:"Claude version", whereWeb:"web version", moveData:"The Claude and web versions keep separate estimates. To move them, export a backup in one and import it in the other.", catNote:"Prices start from a built-in list of typical US prices; your My prices always win.",
   recent:"Recent estimates", seeAll:"See all in My projects ({n})", projH:"Every estimate you make", searchPh:"Search by name, place or description", noMatch:"No estimate matches “{q}”.", noProjects:"No estimates yet. Tap New to price your first job.", draft:"Draft", sortNew:"Newest", sortTotal:"Highest total", sortName:"A–Z",
   genPdf:"Generate PDF", pdfMaking:"Creating PDF…", pdfDone:"PDF ready.", pdfFail:"Couldn't create the PDF. Check your connection and try again.",
   pdfPhotos:"Site photos", likely:"Likely range", acceptT:"Acceptance", acceptP:"By signing below, the client accepts this estimate and its terms.",
@@ -378,6 +380,7 @@ es:{
   quoteT:"Presupuesto", validFor:"válido por 15 días", directCost:"Costo directo", durationL:"Duración estimada", daysN:"{n} día(s)",
   engineT:"Motor de IA", engLocal:"En este dispositivo", engApi:"Clave de API de Anthropic", localT:"IA en el dispositivo", localHelp:"Funciona por completo en este teléfono con el chip gráfico: sin clave, sin costo y sin internet después de una descarga única. Lee tu descripción y medidas (no las fotos) y es menos precisa que Claude, así que mantén Mis precios al día.", mFast:"Ligero (recomendado)", mBetter:"Mejor", mFastSub:"Qwen2.5 1.5B · unos 1 GB · usa menos memoria", mBetterSub:"Qwen2.5 3B · unos 2 GB · más preciso; iOS puede cerrarlo en teléfonos con menos memoria", dl:"Descargar modelo", ready:"Listo · funciona sin internet", notDl:"No descargado", removeModel:"Quitar del dispositivo", modelRemoved:"Modelo eliminado de este dispositivo.", loadingModel:"Cargando el modelo de IA", noWebGPU:"Este navegador no puede ejecutar IA en el dispositivo (necesita WebGPU). En iPhone usa Safari con iOS 26 o más reciente. También puedes usar una clave de API de Anthropic.", localPhotoNote:"La IA del dispositivo lee tu descripción y medidas, no las fotos. Incluye tamaños y materiales en la descripción.", aiOffLocal:"Descarga una vez el modelo de IA en Ajustes. Después funciona sin internet y sin clave.", openSettings:"Abrir Ajustes", dlKeepOpen:"Mantén esta pantalla abierta mientras descarga.", localThinking:"Funcionando en este dispositivo. Mantén la app abierta; puede tardar de 1 a 3 minutos.", crashNote:"La última vez iOS cerró la app mientras la IA trabajaba (sin memoria). Cierra otras apps e inténtalo de nuevo.", crashSwitched:"La última vez iOS cerró la app mientras la IA trabajaba (sin memoria). Cambié al modelo Ligero: descárgalo en Ajustes e inténtalo de nuevo.", draftRestored:"Tu descripción se conservó.",
   chargeAdd:"Agregar lo que cobré", chargeT:"Lo que cobraste", chargeL:"Precio que cotizaste o cobraste al cliente ({c})", chargePh:"p. ej. 4,500", chargeSave:"Guardar", chargeEdit:"Editar", chargeDel:"Quitar", cmpEst:"Estimación TrueCost", cmpYou:"Tú cobraste", diffAbove:"{p}% arriba de la estimación", diffBelow:"{p}% abajo de la estimación", diffSame:"Igual a la estimación", grossM:"Margen bruto sobre el costo directo: {m} ({p}%)", effRate:"Tarifa real de mano de obra: {r}/hr en {h} hr (después de materiales y otros costos)", lossWarn:"Por debajo del costo directo: este trabajo pierde {v}.", histT:"Tus precios", histLine:"{n} trabajo(s) con tu precio · en promedio {p}% {dir} de TrueCost", histAbove:"arriba", histBelow:"abajo", suggest:"Según tus trabajos anteriores, probablemente cobrarías unos {v}", chargedBadge:"cobrado {v}",
+  engClaude:"Tu cuenta de Claude", engClaudeNote:"La IA en el dispositivo funciona solo en la versión web (thechrisart.github.io/truecost-app): Claude no permite descargar el modelo.", verLine:"TrueCost {v} · {where}", whereClaude:"versión de Claude", whereWeb:"versión web", moveData:"Las versiones de Claude y web guardan presupuestos por separado. Para pasarlos, exporta un respaldo en una e impórtalo en la otra.", catNote:"Los precios parten de una lista integrada de precios típicos de EE. UU.; Mis precios siempre tienen prioridad.",
   recent:"Presupuestos recientes", seeAll:"Ver todos en Mis proyectos ({n})", projH:"Todos tus presupuestos", searchPh:"Buscar por nombre, lugar o descripción", noMatch:"Ningún presupuesto coincide con “{q}”.", noProjects:"Todavía no hay presupuestos. Toca Nuevo para cotizar tu primer trabajo.", draft:"Borrador", sortNew:"Más recientes", sortTotal:"Mayor total", sortName:"A–Z",
   genPdf:"Generar PDF", pdfMaking:"Creando el PDF…", pdfDone:"PDF listo.", pdfFail:"No se pudo crear el PDF. Revisa tu conexión e inténtalo de nuevo.",
   pdfPhotos:"Fotos de la obra", likely:"Rango probable", acceptT:"Aceptación", acceptP:"Al firmar abajo, el cliente acepta este presupuesto y sus condiciones.",
@@ -462,6 +465,7 @@ pt:{
   quoteT:"Orçamento", validFor:"válido por 15 dias", directCost:"Custo direto", durationL:"Prazo estimado", daysN:"{n} dia(s)",
   engineT:"Motor de IA", engLocal:"Neste aparelho", engApi:"Chave da API Anthropic", localT:"IA no aparelho", localHelp:"Roda inteira neste celular usando o chip gráfico: sem chave, sem custo e sem internet depois de um download único. Lê sua descrição e medidas (não as fotos) e é menos precisa que o Claude, então mantenha Meus preços atualizado.", mFast:"Leve (recomendado)", mBetter:"Melhor", mFastSub:"Qwen2.5 1.5B · cerca de 1 GB · usa menos memória", mBetterSub:"Qwen2.5 3B · cerca de 2 GB · mais preciso; o iOS pode fechar em celulares com menos memória", dl:"Baixar modelo", ready:"Pronto · funciona offline", notDl:"Não baixado", removeModel:"Remover do aparelho", modelRemoved:"Modelo removido deste aparelho.", loadingModel:"Carregando o modelo de IA", noWebGPU:"Este navegador não roda IA no aparelho (precisa de WebGPU). No iPhone use o Safari no iOS 26 ou mais novo. Você ainda pode usar uma chave da API Anthropic.", localPhotoNote:"A IA do aparelho lê sua descrição e medidas, não as fotos. Coloque tamanhos e materiais na descrição.", aiOffLocal:"Baixe o modelo de IA uma vez em Ajustes. Depois funciona offline e sem chave.", openSettings:"Abrir Ajustes", dlKeepOpen:"Deixe esta tela aberta durante o download.", localThinking:"Rodando neste aparelho. Mantenha o app aberto; pode levar de 1 a 3 minutos.", crashNote:"Da última vez o iOS fechou o app enquanto a IA trabalhava (falta de memória). Feche outros apps e tente de novo.", crashSwitched:"Da última vez o iOS fechou o app enquanto a IA trabalhava (falta de memória). Troquei para o modelo Leve: baixe-o em Ajustes e tente de novo.", draftRestored:"Sua descrição foi mantida.",
   chargeAdd:"Adicionar o que eu cobrei", chargeT:"O que você cobrou", chargeL:"Valor que você orçou ou cobrou do cliente ({c})", chargePh:"Ex.: 4.500", chargeSave:"Salvar", chargeEdit:"Editar", chargeDel:"Remover", cmpEst:"Estimativa TrueCost", cmpYou:"Você cobrou", diffAbove:"{p}% acima da estimativa", diffBelow:"{p}% abaixo da estimativa", diffSame:"Igual à estimativa", grossM:"Margem bruta sobre o custo direto: {m} ({p}%)", effRate:"Sua hora real de mão de obra: {r}/h em {h} h (depois de materiais e outros custos)", lossWarn:"Abaixo do custo direto: este serviço dá prejuízo de {v}.", histT:"Seus preços", histLine:"{n} serviço(s) com seu preço · em média {p}% {dir} do TrueCost", histAbove:"acima", histBelow:"abaixo", suggest:"Pelo seu histórico, você provavelmente cobraria cerca de {v}", chargedBadge:"cobrado {v}",
+  engClaude:"Sua conta Claude", engClaudeNote:"A IA no aparelho só roda na versão web (thechrisart.github.io/truecost-app): o Claude não permite baixar o modelo.", verLine:"TrueCost {v} · {where}", whereClaude:"versão do Claude", whereWeb:"versão web", moveData:"As versões do Claude e web guardam orçamentos separados. Para passar de uma para outra, exporte um backup em uma e importe na outra.", catNote:"Os preços partem de uma lista embutida de preços típicos dos EUA; Meus preços sempre têm prioridade.",
   recent:"Orçamentos recentes", seeAll:"Ver todos em Meus projetos ({n})", projH:"Todos os seus orçamentos", searchPh:"Buscar por nome, local ou descrição", noMatch:"Nenhum orçamento encontrado para “{q}”.", noProjects:"Nenhum orçamento ainda. Toque em Novo para orçar sua primeira obra.", draft:"Rascunho", sortNew:"Mais recentes", sortTotal:"Maior total", sortName:"A–Z",
   genPdf:"Gerar PDF", pdfMaking:"Criando o PDF…", pdfDone:"PDF pronto.", pdfFail:"Não consegui criar o PDF. Verifique a conexão e tente de novo.",
   pdfPhotos:"Fotos do local", likely:"Faixa provável", acceptT:"Aceite", acceptP:"Ao assinar abaixo, o cliente aceita este orçamento e suas condições.",
@@ -686,6 +690,10 @@ async function localModelId(){
 const localDownloaded = () => { try{ return localStorage.getItem(LOCAL_LS) || ""; }catch{ return ""; } };
 const localReady = () => HAS_GPU && localDownloaded().startsWith((LOCAL_MODELS[state.settings.localModel] || LOCAL_MODELS.fast) + "-");
 const engineKind = () => IN_CLAUDE ? "claude" : (state.settings.engine || (getKey() ? "api" : "local"));
+async function resetLocalEngine(){
+  const old = localEngine; localEngine = null; localEngineId = null;
+  try{ await old?.unload(); }catch{}   // unloading an already-disposed engine throws; nothing to keep either way
+}
 async function getLocalEngine(onProgress){
   const id = await localModelId();
   if(localEngine && localEngineId === id) return localEngine;
@@ -707,8 +715,10 @@ async function localAsk(prompt, opts = {}){
   try{
     try{ return await localAskInner(prompt, opts); }
     catch(e){
-      // iOS takes the GPU back while the app waits (answering questions, locking the screen): reload the model and try once more.
-      if(e?.code !== "local_fail" || !/device|lost|instance/i.test(e.message || "") || opts.signal?.aborted) throw e;
+      // iOS takes the GPU back while the app waits (answering questions, locking the screen), which leaves the model
+      // "lost" or "disposed". Any engine failure gets one fresh reload and retry; only a too-long prompt or a Stop is final.
+      if(e?.code !== "local_fail" || /prompt too long/.test(e.message || "") || opts.signal?.aborted) throw e;
+      await resetLocalEngine();
       return await localAskInner(prompt, opts);
     }
   } finally { markRun(false); }
@@ -716,7 +726,7 @@ async function localAsk(prompt, opts = {}){
 async function localAskInner(prompt, opts = {}){
   let eng;
   try{ eng = await getLocalEngine(opts.onProgress); }
-  catch(e){ throw e?.code ? e : { code:"local_fail", message:String(e?.message || e) }; }
+  catch(e){ await resetLocalEngine(); throw e?.code ? e : { code:"local_fail", message:String(e?.message || e) }; }
   // Prompt and answer share the 4096-token window (~3 characters per token); leave the rest for the answer.
   const room = 4000 - Math.ceil((prompt.length + 120) / 3);
   if(room < 500) throw { code:"local_fail", message:`prompt too long (${prompt.length} chars)` };
@@ -730,12 +740,8 @@ async function localAskInner(prompt, opts = {}){
     const chunks = await eng.chat.completions.create(req);
     for await (const c of chunks){ const d = c.choices?.[0]?.delta?.content || ""; if(d){ text += d; opts.onText?.({ text, delta:d }); } }
   }catch(e){
-    const msg = String(e?.message || e);
-    if(/device|lost|gpu|memory|instance/i.test(msg)){   // a lost GPU device leaves the engine unusable; reload it next time
-      try{ await localEngine?.unload(); }catch{}
-      localEngine = null; localEngineId = null;
-    }
-    throw { code:"local_fail", message:msg };
+    await resetLocalEngine();   // whatever broke, the next call starts from a freshly loaded model
+    throw { code:"local_fail", message:String(e?.message || e) };
   }
   finally{ opts.signal?.removeEventListener("abort", stop); }
   if(opts.signal?.aborted) throw { code:"cancelled" };
@@ -778,6 +784,8 @@ function ctxBlock(){
 - Currency: ${s.currency}. Measurement system: ${u.sys}. Use only these units.
 - The user's own hourly labor rate: ${s.laborRate} ${s.currency}/hr (use it for labor billed by the hour).
 ${pb ? `- USER'S OWN PRICE LIST (name | unit | price). When an item matches, use EXACTLY this price:\n${pb}` : "- No personal price list: use typical current retail/supplier prices for the region (big-box stores and trade suppliers)."}
+- REFERENCE PRICES (typical US national averages; adjust to the region; the user's own list above wins). id | item | unit | price:
+${catalogForPrompt(true)}
 - Write every text field in ${LANG_NAME[lang()]}.`;
 }
 
@@ -848,19 +856,74 @@ const LOCAL_ANALYZE_PROMPT = d => `Understand this construction job before prici
 ${localCtx()}
 Job: """${d.description}"""
 Location: ${d.location || state.settings.region || "United States"}
-Give: a short title, project type, trades, a 2-sentence summary, observations that affect cost, the measurements stated or implied in the description (use the user's numbers; "basis" says where each came from), and up to 4 questions with 2-3 short options each, only if the answer changes the price.`;
+Give: a short title, project type, trades, a 2-sentence summary, observations that affect cost, the measurements stated or implied in the description (areas, lengths or counts of the work; positive numbers only; use the user's numbers; "basis" says where each came from), and up to 4 questions with 2-3 short options each, only if the answer changes the price.`;
+/* On-device estimate: the model only picks catalog ids and quantities (prices come from the catalog or My prices),
+   which keeps a small model from inventing items or prices. */
+const myRefs = () => state.pricebook.slice(0, 25).map((x, i) => [`my-${i}`, x]);
+const localLinesSchema = (ids = CATALOG.map(c => c[0])) => ({ type:"object", properties:{ title:{ type:"string" }, scope:{ type:"string" },
+  lines:{ type:"array", items:{ type:"object", properties:{ phase:{ type:"string" }, ref:{ type:"string", enum:[...ids, ...myRefs().map(r => r[0]), "custom"] },
+    qty:{ type:"number" }, name:{ type:"string" }, unit:{ type:"string" }, unitPrice:{ type:"number" } }, required:["phase","ref","qty"] } },
+  assumptions:STR_ARR, exclusions:STR_ARR, durationDays:{ type:"number" }, crew:{ type:"string" }, confidence:{ type:"string" }, rangePct:{ type:"number" } },
+  required:["title","scope","lines","assumptions","exclusions","durationDays","crew","confidence","rangePct"] });
+const jobText = p => [p.description, p.analysis?.summary, ...(p.analysis?.trades || []), ...(p.analysis?.measurements || []).map(m => m.label)].join(" ");
 const LOCAL_ESTIMATE_PROMPT = (p, d) => {
-  const a = p.analysis || {};
-  const meas = (a.measurements || []).map(m => `${m.label}: ${m.value} ${m.unit}`).join("; ");
+  const a = p.analysis || {}, ids = catalogIdsFor(jobText(p));
+  const meas = (a.measurements || []).map(m => `${m.label}: ${Math.abs(num(m.value))} ${m.unit}`).join("; ");
   const ans = d.answers.map(x => `${x.question} ${x.answer}`).join("; ");
-  return `Make a line-item construction estimate.
-${localCtx()}
+  const mine = myRefs().map(([id, x]) => `${id} | ${x.name} | ${x.unit}`).join("\n");
+  return `Build the line items for this construction job by choosing from the CATALOG below.
 Job: """${p.description}"""
 Summary: ${a.summary || ""}
 Measurements: ${meas || "see job"}
 Answers: ${ans || "none"}
-Rules: up to 4 phases in work order; in each, up to 6 items: materials (kind "material"), labor (kind "labor"), other costs like disposal or dumpster (kind "other"). Quantities from the measurements plus normal waste, rounded to package sizes. unitPrice = current local price per unit, without profit, tax or contingency. durationDays = work days. rangePct = uncertainty 5 to 40. 0 to 2 upsells.`;
+CATALOG (ref | item | unit):
+${mine ? mine + "\n" : ""}${catalogForPrompt(false, ids)}
+How to fill "lines":
+- ref = a catalog ref. Use "custom" only if nothing fits, and then also give name, unit and unitPrice in ${state.settings.currency}.
+- qty in the catalog unit, always positive: drywall sheets = area ÷ 32, rounded up; paint gallons = area × coats ÷ 350; joint compound ≈ 1 bucket per 300 sq ft; flooring and tile + 10% waste; hourly labor = realistic hours.
+- Include materials, labor for each trade, and haul-away if anything is removed.
+- phase = short phase name in work order (at most 4 phases). Write phase, title, scope, assumptions, exclusions and crew in ${LANG_NAME[lang()]}.
+- durationDays = work days; rangePct = uncertainty 5 to 40.`;
 };
+/* Small models often list materials and forget the labor. When an estimate has no labor at all, derive it from the
+   materials: material ref -> [labor ref, labor units per material unit]. */
+const LABOR_FOR = { "dw-sheet":["lab-dw-hang",32], "dw-sheet-x":["lab-dw-hang",32], "dw-mold":["lab-dw-hang",32], "jc-bucket":["lab-dw-finish",300],
+  "patch-kit":["lab-dw-patch",1], "paint-gal":["lab-paint-wall",175], "paint-5gal":["lab-paint-wall",875], "paint-ceiling":["lab-paint-ceil",175], "paint-ext":["lab-paint-wall",175],
+  "lvp":["lab-lvp",1], "laminate":["lab-lvp",1], "hardwood":["lab-hardwood",1], "tile-floor":["lab-tile-floor",1], "tile-wall":["lab-tile-wall",1],
+  "baseboard":["lab-baseboard",1], "insulation":["lab-insulation",1], "door":["lab-door",1], "vanity":["lab-vanity",1], "toilet":["lab-toilet",1],
+  "device":["lab-electric",1], "fixture":["lab-electric",1], "recessed":["lab-electric",1] };
+const AREA_LABOR = new Set(["lab-dw-hang","lab-dw-finish","lab-paint-wall","lab-paint-ceil","lab-lvp","lab-hardwood","lab-tile-floor","lab-tile-wall","lab-insulation"]);
+function addMissingLabor(groups, areaHint){
+  if(groups.some(g => g.items.some(it => it.kind === "labor"))) return;
+  for(const g of groups){
+    const add = {};
+    for(const it of g.items){ const m = LABOR_FOR[it.ref]; if(m) add[m[0]] = (add[m[0]] || 0) + it.qty * m[1]; }
+    if(add["lab-dw-patch"]) delete add["lab-dw-finish"];   // a patch price already includes finishing
+    for(const [ref, q] of Object.entries(add)){
+      const qty = AREA_LABOR.has(ref) && areaHint > 0 ? Math.min(q, areaHint) : q;   // never more area than the job measures
+      const it = catItem(ref); if(it) g.items.push({ ...it, qty:Math.ceil(qty), note:"" });
+    }
+  }
+}
+/* Largest area (sq ft or m²) the analysis measured: caps labor derived from material quantities. */
+const areaHintOf = p => Math.max(0, ...(p.analysis?.measurements || []).filter(m => /sq ?ft|ft²|m²|m2/i.test(m.unit || "")).map(m => Math.abs(num(m.value))));
+function linesToEstimate(r, areaHint = 0){
+  const mine = Object.fromEntries(myRefs());
+  const groups = [];
+  for(const ln of Array.isArray(r?.lines) ? r.lines : []){
+    const qty = Math.abs(num(ln.qty)); if(!qty) continue;
+    let it = catItem(ln.ref);
+    if(!it && mine[ln.ref]){ const x = mine[ln.ref]; it = { kind: /labor|mão de obra|mano de obra/i.test(x.cat || "") ? "labor" : "material", name:x.name, unit:x.unit, unitPrice:num(x.price) }; }
+    if(!it){ if(!ln.name) continue; it = { kind: /^(h|hr|hora)/i.test(ln.unit || "") ? "labor" : "material", name:String(ln.name), unit:String(ln.unit || "ea"), unitPrice:Math.abs(num(ln.unitPrice)) }; }
+    const name = String(ln.phase || t("item")).trim();
+    let g = groups.find(x => x.name.toLowerCase() === name.toLowerCase());
+    if(!g){ g = { name, items:[] }; groups.push(g); }
+    const dup = g.items.find(x => x.ref && x.ref === it.ref);
+    if(dup) dup.qty += qty; else g.items.push({ ...it, qty, note:"" });
+  }
+  addMissingLabor(groups, areaHint);
+  return { title:r?.title, scope:r?.scope, groups, assumptions:r?.assumptions, exclusions:r?.exclusions, durationDays:r?.durationDays, crew:r?.crew, confidence:r?.confidence, rangePct:r?.rangePct, upsells:[] };
+}
 const LOCAL_REFINE_PROMPT = (p, instr) => {
   const lines = p.estimate.groups.map(g => g.items.map(it => `${g.name} | ${it.kind} | ${it.name} | ${it.qty} | ${it.unit} | ${it.unitPrice}`).join("\n")).join("\n");
   return `Update this construction estimate as the user asks. Keep unaffected lines exactly as they are.
@@ -885,6 +948,118 @@ USER REQUEST: """${instr}"""
 Keep items the request doesn't affect exactly as they are (same prices and quantities). Keep prices in ${p.currency || state.settings.currency}. ${ESTIMATE_RULES()}
 Reply ONLY with JSON in the shape below, adding "changeNote" (1 sentence on what changed):
 ${estimateSchema()}`;
+
+/* ---------- reference catalog ----------
+   Typical US prices (national averages, big-box / trade supplier and common contractor unit rates), used as:
+   - the item list the on-device model picks from (it chooses ids and quantities; prices come from here or My prices);
+   - a price reference in the Claude / API prompts, so both versions price the same way.
+   Hourly labor uses the user's own rate from Settings. Fields: id, kind, unit, price, [en, pt, es]. */
+const CATALOG = [
+  // drywall
+  ["dw-sheet","material","ea",16.5,["Drywall sheet 1/2 in, 4×8 ft","Placa de drywall 1/2 in, 4×8 ft","Panel de drywall 1/2 in, 4×8 ft"]],
+  ["dw-sheet-x","material","ea",21,["Drywall sheet 5/8 in Type X, 4×8 ft","Placa de drywall 5/8 in tipo X, 4×8 ft","Panel de drywall 5/8 in tipo X, 4×8 ft"]],
+  ["dw-mold","material","ea",22,["Mold-resistant drywall 1/2 in, 4×8 ft","Drywall resistente a umidade 1/2 in, 4×8 ft","Drywall resistente a humedad 1/2 in, 4×8 ft"]],
+  ["jc-bucket","material","bucket",19,["All-purpose joint compound, 4.5 gal","Massa de junta pronta, 4,5 gal","Compuesto para juntas, 4.5 gal"]],
+  ["jc-setting","material","bag",17,["Setting compound (hot mud), 18 lb","Massa de secagem rápida (hot mud), 18 lb","Compuesto de fraguado rápido, 18 lb"]],
+  ["tape-paper","material","roll",7,["Paper drywall tape, 500 ft","Fita de papel para drywall, 500 ft","Cinta de papel para drywall, 500 ft"]],
+  ["tape-mesh","material","roll",9,["Mesh drywall tape, 300 ft","Fita telada para drywall, 300 ft","Cinta de malla para drywall, 300 ft"]],
+  ["corner-bead","material","ea",4.5,["Metal corner bead, 8 ft","Cantoneira metálica, 8 ft","Esquinero metálico, 8 ft"]],
+  ["dw-screws","material","box",28,["Drywall screws 1-1/4 in, 5 lb","Parafusos para drywall 1-1/4 in, 5 lb","Tornillos para drywall 1-1/4 in, 5 lb"]],
+  ["texture","material","can",18,["Spray texture (orange peel / knockdown)","Textura em spray (casca de laranja / knockdown)","Textura en aerosol (cáscara de naranja / knockdown)"]],
+  ["patch-kit","material","kit",12,["Drywall patch kit","Kit de remendo para drywall","Kit de parche para drywall"]],
+  // paint
+  ["paint-gal","material","gal",45,["Interior paint, eggshell","Tinta interna acetinada","Pintura interior satinada"]],
+  ["paint-5gal","material","bucket",200,["Interior paint, 5 gal","Tinta interna, 5 gal","Pintura interior, 5 gal"]],
+  ["paint-ceiling","material","gal",35,["Ceiling paint, flat","Tinta para teto, fosca","Pintura para techo, mate"]],
+  ["primer","material","gal",30,["Primer","Primer / selador","Imprimador"]],
+  ["paint-ext","material","gal",60,["Exterior paint","Tinta externa","Pintura exterior"]],
+  ["caulk","material","tube",6,["Paintable caulk, 10 oz","Selante pintável, 10 oz","Sellador pintable, 10 oz"]],
+  ["paint-kit","material","kit",45,["Rollers, tray, brushes and tape","Rolos, bandeja, trinchas e fita","Rodillos, bandeja, brochas y cinta"]],
+  ["drop-cloth","material","ea",8,["Plastic drop cloth / masking","Lona plástica / proteção","Plástico protector"]],
+  // framing & insulation
+  ["stud","material","ea",4.5,["2×4×8 ft stud","Montante 2×4×8 ft","Montante 2×4×8 ft"]],
+  ["plywood","material","sheet",55,["Plywood 3/4 in, 4×8 ft","Compensado 3/4 in, 4×8 ft","Contrachapado 3/4 in, 4×8 ft"]],
+  ["osb","material","sheet",18,["OSB 7/16 in, 4×8 ft","OSB 7/16 in, 4×8 ft","OSB 7/16 in, 4×8 ft"]],
+  ["insulation","material","sq ft",0.75,["Fiberglass batt insulation R-13","Isolamento de lã de vidro R-13","Aislamiento de fibra de vidrio R-13"]],
+  // flooring & tile
+  ["lvp","material","sq ft",3.5,["Luxury vinyl plank (LVP)","Piso vinílico (LVP)","Piso vinílico (LVP)"]],
+  ["laminate","material","sq ft",2.5,["Laminate flooring","Piso laminado","Piso laminado"]],
+  ["hardwood","material","sq ft",5.5,["Engineered hardwood","Piso de madeira engenheirada","Madera de ingeniería"]],
+  ["underlay","material","sq ft",0.5,["Flooring underlayment","Manta para piso","Bajo piso"]],
+  ["carpet","material","sq ft",3.5,["Carpet with pad","Carpete com manta","Alfombra con base"]],
+  ["tile-floor","material","sq ft",3.5,["Porcelain floor tile","Porcelanato de piso","Porcelanato de piso"]],
+  ["tile-wall","material","sq ft",2.5,["Ceramic wall tile","Azulejo cerâmico de parede","Azulejo cerámico de pared"]],
+  ["thinset","material","bag",25,["Thinset mortar, 50 lb","Argamassa colante, 50 lb","Mortero adhesivo, 50 lb"]],
+  ["grout","material","bag",22,["Grout, 25 lb","Rejunte, 25 lb","Lechada, 25 lb"]],
+  ["backer","material","sheet",14,["Cement backer board, 3×5 ft","Placa cimentícia, 3×5 ft","Placa de cemento, 3×5 ft"]],
+  ["baseboard","material","LF",1.6,["Baseboard, MDF 3-1/4 in","Rodapé MDF 3-1/4 in","Zócalo MDF 3-1/4 in"]],
+  ["casing","material","LF",1.4,["Door casing","Guarnição de porta","Moldura de puerta"]],
+  // doors, fixtures, MEP
+  ["door","material","ea",180,["Interior prehung door","Porta interna pré-montada","Puerta interior premontada"]],
+  ["vanity","material","ea",450,["Bathroom vanity 36 in with top","Gabinete de banheiro 36 in com tampo","Mueble de baño 36 in con cubierta"]],
+  ["toilet","material","ea",250,["Toilet","Vaso sanitário","Inodoro"]],
+  ["faucet","material","ea",120,["Faucet","Torneira","Llave / grifo"]],
+  ["device","material","ea",12,["Outlet or switch with box and cover","Tomada ou interruptor com caixa e espelho","Contacto o apagador con caja y tapa"]],
+  ["fixture","material","ea",80,["Light fixture","Luminária","Lámpara"]],
+  ["recessed","material","ea",25,["LED recessed light, 6 in","Spot LED embutido, 6 in","Luz empotrada LED, 6 in"]],
+  ["wire","material","LF",0.8,["Electrical cable 14/2 NM","Cabo elétrico 14/2 NM","Cable eléctrico 14/2 NM"]],
+  ["pex","material","LF",0.7,["PEX pipe 1/2 in","Tubo PEX 1/2 in","Tubo PEX 1/2 in"]],
+  ["consumables","material","lot",40,["Fasteners, adhesives and consumables","Fixadores, colas e consumíveis","Fijaciones, adhesivos y consumibles"]],
+  // other costs
+  ["dumpster","other","ea",450,["Dumpster rental, 10 yd","Aluguel de caçamba, 10 yd","Renta de contenedor, 10 yd"]],
+  ["haul","other","lot",150,["Debris haul-away (small job)","Retirada de entulho (serviço pequeno)","Retiro de escombros (trabajo pequeño)"]],
+  ["permit","other","ea",200,["Building permit (small job)","Licença de obra (serviço pequeno)","Permiso de obra (trabajo pequeño)"]],
+  // labor
+  ["lab-hour","labor","hr",0,["Labor (hourly)","Mão de obra (por hora)","Mano de obra (por hora)"]],
+  ["lab-dw-hang","labor","sq ft",0.75,["Hang drywall","Instalação de drywall","Instalación de drywall"]],
+  ["lab-dw-finish","labor","sq ft",1,["Tape and finish drywall (level 4)","Fita e acabamento de drywall (nível 4)","Encintado y acabado de drywall (nivel 4)"]],
+  ["lab-dw-patch","labor","ea",250,["Drywall patch and finish (up to 4×8 ft)","Remendo de drywall com acabamento (até 4×8 ft)","Parche de drywall con acabado (hasta 4×8 ft)"]],
+  ["lab-texture","labor","sq ft",0.75,["Apply wall/ceiling texture","Aplicação de textura em parede/teto","Aplicación de textura en pared/techo"]],
+  ["lab-paint-wall","labor","sq ft",1.5,["Paint walls, 2 coats (wall area)","Pintura de paredes, 2 demãos (área de parede)","Pintura de paredes, 2 manos (área de pared)"]],
+  ["lab-paint-ceil","labor","sq ft",1.75,["Paint ceiling, 2 coats","Pintura de teto, 2 demãos","Pintura de techo, 2 manos"]],
+  ["lab-paint-trim","labor","LF",1.5,["Paint trim / baseboard","Pintura de rodapés e guarnições","Pintura de zócalos y molduras"]],
+  ["lab-demo","labor","sq ft",2,["Demolition and removal","Demolição e remoção","Demolición y retiro"]],
+  ["lab-lvp","labor","sq ft",2.5,["Install LVP / laminate","Instalação de vinílico / laminado","Instalación de vinílico / laminado"]],
+  ["lab-hardwood","labor","sq ft",4,["Install engineered hardwood","Instalação de madeira engenheirada","Instalación de madera de ingeniería"]],
+  ["lab-tile-floor","labor","sq ft",7,["Install floor tile","Assentamento de piso cerâmico","Instalación de piso cerámico"]],
+  ["lab-tile-wall","labor","sq ft",9,["Install wall tile","Assentamento de azulejo","Instalación de azulejo"]],
+  ["lab-baseboard","labor","LF",2.5,["Install baseboard","Instalação de rodapé","Instalación de zócalo"]],
+  ["lab-insulation","labor","sq ft",0.8,["Install insulation","Instalação de isolamento","Instalación de aislamiento"]],
+  ["lab-framing","labor","LF",18,["Frame wall (per LF of wall)","Estrutura de parede (por LF)","Estructura de pared (por LF)"]],
+  ["lab-door","labor","ea",200,["Install interior door","Instalação de porta interna","Instalación de puerta interior"]],
+  ["lab-vanity","labor","ea",350,["Install vanity and faucet","Instalação de gabinete e torneira","Instalación de mueble y llave"]],
+  ["lab-toilet","labor","ea",200,["Install toilet","Instalação de vaso sanitário","Instalación de inodoro"]],
+  ["lab-electric","labor","ea",125,["Electrical device install (outlet, switch, light)","Instalação elétrica por ponto (tomada, interruptor, luz)","Instalación eléctrica por punto (contacto, apagador, luz)"]],
+  ["lab-plumb","labor","ea",175,["Plumbing fixture connection","Ligação hidráulica por ponto","Conexión de plomería por punto"]],
+];
+const CAT = Object.fromEntries(CATALOG.map(([id, kind, unit, price, names]) => [id, { id, kind, unit, price, names }]));
+const LANG_IX = { en:0, pt:1, es:2 };
+const laborRate = () => num(state.settings.laborRate) > 0 ? num(state.settings.laborRate) : 65;
+const catPrice = c => c.id === "lab-hour" ? laborRate() : c.price;
+const catName = c => c.names[LANG_IX[lang()] ?? 0];
+/* My prices win over the catalog when the user saved a price for the same item name. */
+function catItem(id){
+  const c = CAT[id]; if(!c) return null;
+  const mine = state.pricebook.find(x => c.names.some(n => n.toLowerCase() === String(x.name).toLowerCase()));
+  return { kind:c.kind, name:catName(c), unit:mine?.unit || c.unit, unitPrice: mine ? num(mine.price) : catPrice(c), ref:c.id };
+}
+const catalogForPrompt = (withPrices, ids) => (ids || CATALOG.map(c => c[0])).map(id => { const x = CAT[id]; return `${x.id} | ${x.names[0]} | ${x.unit}${withPrices ? ` | ${catPrice(x)}` : ""}`; }).join("\n");
+/* Trade groups, so the on-device model only reads the part of the catalog the job needs (shorter prompt, faster, steadier on phones). */
+const TRADES = [
+  [/drywall|gesso|sheet ?rock|tablaroca|massa|buraco|hole|patch|remendo|parche|placa|teto|ceiling|techo|textur/i, ["dw-sheet","dw-sheet-x","dw-mold","jc-bucket","jc-setting","tape-paper","tape-mesh","corner-bead","dw-screws","texture","patch-kit","lab-dw-hang","lab-dw-finish","lab-dw-patch","lab-texture"]],
+  [/paint|pint|tinta|primer|selador/i, ["paint-gal","paint-5gal","paint-ceiling","primer","paint-ext","caulk","paint-kit","drop-cloth","lab-paint-wall","lab-paint-ceil","lab-paint-trim"]],
+  [/floor|piso|lvp|vin[iy]l|laminad|carpet|carpete|alfombra|hardwood|madeira|madera|rodap|baseboard|z[oó]calo/i, ["lvp","laminate","hardwood","underlay","carpet","baseboard","lab-lvp","lab-hardwood","lab-baseboard"]],
+  [/tile|azulejo|porcelanato|cer[aâá]mic|rejunte|grout|lechada|backsplash|revestimento/i, ["tile-floor","tile-wall","thinset","grout","backer","lab-tile-floor","lab-tile-wall"]],
+  [/fram|stud|montante|estrutura|estructura|insulat|isolamento|aislamiento|plywood|compensado|osb/i, ["stud","plywood","osb","insulation","lab-framing","lab-insulation"]],
+  [/door|porta|puerta|trim|guarni|moldura|casing/i, ["door","casing","lab-door"]],
+  [/bath|banheir|ba[ñn]o|toilet|vaso|inodoro|vanity|gabinete|faucet|torneira|grifo|llave|plumb|hidr[aá]ul|encanamento|plomer|pex|vazamento|leak|fuga/i, ["vanity","toilet","faucet","pex","lab-vanity","lab-toilet","lab-plumb"]],
+  [/electr|el[eé]tric|tomada|outlet|switch|interruptor|apagador|contacto|luz|light|lumin|l[aá]mpara|fixture|wire|fia[cç]|cable|cabo/i, ["device","fixture","recessed","wire","lab-electric"]],
+];
+const ALWAYS = ["consumables","haul","dumpster","permit","lab-demo","lab-hour"];
+function catalogIdsFor(text){
+  const ids = TRADES.filter(([re]) => re.test(text)).flatMap(([, list]) => list);
+  return ids.length ? [...new Set([...ids, ...ALWAYS])] : CATALOG.map(c => c[0]);
+}
 
 /* JSON schemas: used by the on-device model to constrain its output (the cloud engines get the shape in the prompt). */
 const STR_ARR = { type:"array", items:{ type:"string" } };
@@ -930,7 +1105,7 @@ function normalizeEstimate(e){
   const n = v => typeof v === "number" ? v : parseFloat(String(v ?? "").replace(/[^0-9.\-]/g, "")) || 0;
   e.groups = e.groups.filter(g => g && Array.isArray(g.items)).map(g => ({
     name:String(g.name || t("item")),
-    items:g.items.map(it => ({ kind: KIND_COLOR[it.kind] ? it.kind : "other", name:String(it.name || t("item")), qty:n(it.qty) || 1, unit:String(it.unit || "ea"), unitPrice:n(it.unitPrice), note: it.note ? String(it.note) : "" }))
+    items:g.items.map(it => ({ kind: KIND_COLOR[it.kind] ? it.kind : "other", name:String(it.name || t("item")), qty:Math.abs(n(it.qty)) || 1, unit:String(it.unit || "ea"), unitPrice:Math.abs(n(it.unitPrice)), note: it.note ? String(it.note) : "", ...(it.ref ? { ref:it.ref } : {}) }))
   }));
   ["assumptions","exclusions"].forEach(k => e[k] = Array.isArray(e[k]) ? e[k].map(String) : []);
   e.upsells = Array.isArray(e.upsells) ? e.upsells.map(u => ({ name:String(u.name || ""), price:n(u.price) })).filter(u => u.name) : [];
@@ -1244,7 +1419,7 @@ function vSettings(){
   const seg = (k, opts) => `<div class="seg">${opts.map(([v, l]) => `<button type="button" data-act="set" data-k="${k}" data-v="${v}" aria-pressed="${s[k] === v}">${l}</button>`).join("")}</div>`;
   const key = getKey();
   const eng = engineKind(), dlId = localReady() ? localDownloaded() : "", lm = s.localModel || "fast", ls = state.localStatus;
-  const engineBox = IN_CLAUDE ? "" : `<section class="card pad stack"><span class="eyebrow">${t("engineT")}</span>
+  const engineBox = IN_CLAUDE ? `<section class="card pad stack"><span class="eyebrow">${t("engineT")}</span><b>${t("engClaude")}</b><span class="small muted">${t("engClaudeNote")}</span></section>` : `<section class="card pad stack"><span class="eyebrow">${t("engineT")}</span>
     <div class="seg" style="align-self:flex-start"><button type="button" data-act="set" data-k="engine" data-v="local" aria-pressed="${eng === "local"}">${t("engLocal")}</button><button type="button" data-act="set" data-k="engine" data-v="api" aria-pressed="${eng === "api"}">${t("engApi")}</button></div></section>`;
   const localBox = IN_CLAUDE || eng !== "local" ? "" : `<section class="card pad stack">
     <div class="row"><span class="eyebrow grow">${t("localT")}</span><span class="badge" style="${dlId ? "background:var(--good);color:var(--surface)" : ""}">${dlId ? t("ready") : t("notDl")}</span></div>
@@ -1282,8 +1457,11 @@ function vSettings(){
   <section class="card pad stack"><span class="eyebrow">${t("backupT")}</span>
     <span class="small muted">${state.storeMode === "db" ? t("storedAccount") : t("storedDevice")} ${t("backupHelp")}</span>
     <div class="actions"><button class="btn" data-act="backup">${t("exportB")}</button><button class="btn" data-act="restore">${t("importB")}</button></div>
+    <span class="small muted">${t("moveData")}</span>
     <input type="file" id="restoreIn" accept="application/json,.json" class="vh" aria-label="${t("importB")}">
-  </section>`;
+  </section>
+  <p class="small muted" style="margin:0">${t("catNote")}</p>
+  <p class="small muted num" style="margin:0;text-align:center">${esc(t("verLine", { v:APP_VERSION, where:t(IN_CLAUDE ? "whereClaude" : "whereWeb") }))}</p>`;
 }
 
 /* ---------- AI flows ---------- */
@@ -1306,7 +1484,7 @@ async function doAnalyze(){
     const a = await runAI("busyAnalyze", (state.sample?.local ? LOCAL_ANALYZE_PROMPT : ANALYZE_PROMPT)({ nPhotos: imgs.length, description: d.description, location: d.location }), { schema:ANALYSIS_SCHEMA, ...(imgs.length ? { images: imgs } : {}) });
     if(!a || typeof a !== "object") throw { code:"invalid_json" };
     a.questions = (Array.isArray(a.questions) ? a.questions : []).slice(0, 5).map((q, i) => ({ id: String(q.id || "q" + (i + 1)), question: String(q.question || ""), options: Array.isArray(q.options) ? q.options.map(String).slice(0, 4) : [] })).filter(q => q.question);
-    a.measurements = (Array.isArray(a.measurements) ? a.measurements : []).map(m => ({ label:String(m.label || ""), value:m.value, unit:String(m.unit || ""), basis: m.basis ? String(m.basis) : "" }));
+    a.measurements = (Array.isArray(a.measurements) ? a.measurements : []).map(m => ({ label:String(m.label || ""), value:Math.abs(num(m.value)), unit:String(m.unit || ""), basis: m.basis ? String(m.basis) : "" })).filter(m => m.label);
     const p = { id:uid(), name: a.title || t("newProject"), createdAt:Date.now(), updatedAt:Date.now(), description:d.description, location:d.location,
       currency: state.settings.currency, units: state.settings.units, lang: lang(),
       thumbs: d.photos.slice(0, 4).map(x => x.thumb).filter(Boolean), analysis:a, estimate:null,
@@ -1325,7 +1503,10 @@ async function doEstimate(){
   p.answers = answers;
   const imgs = photosToAI() ? d.photos.map(x => x.blob) : [];
   try{
-    const e = normalizeEstimate(await runAI("busyEstimate", (state.sample?.local ? LOCAL_ESTIMATE_PROMPT : ESTIMATE_PROMPT)(p, { answers, nPhotos: imgs.length }), { schema:ESTIMATE_SCHEMA, ...(imgs.length ? { images: imgs } : {}) }));
+    const local = !!state.sample?.local;
+    const raw = await runAI("busyEstimate", (local ? LOCAL_ESTIMATE_PROMPT : ESTIMATE_PROMPT)(p, { answers, nPhotos: imgs.length }), { schema: local ? localLinesSchema(catalogIdsFor(jobText(p))) : ESTIMATE_SCHEMA, ...(imgs.length ? { images: imgs } : {}) });
+    const e = normalizeEstimate(local ? linesToEstimate(raw, areaHintOf(p)) : raw);
+    if(!e.groups.length) throw { code:"invalid_json" };
     p.estimate = e; if(e.title) p.name = e.title;
     saveProject(p, true);
     d.photos.forEach(x => URL.revokeObjectURL(x.url));
@@ -1690,6 +1871,8 @@ function openPicker(){
   document.body.appendChild(sh);
 }
 function closePicker(){ document.getElementById("picker")?.remove(); }
+
+if(location.hostname === "localhost") window.__tc = { linesToEstimate, catalogIdsFor, normalizeEstimate, totals };   // local testing only
 
 /* ---------- boot ---------- */
 async function loadState(){
