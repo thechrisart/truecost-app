@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="en-US">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>TrueCost</title>
-<meta name="description" content="Orçamentos de obras e reformas a partir de fotos com IA.">
+<meta name="description" content="Construction and remodeling estimates from photos with AI.">
 <meta name="theme-color" content="#16202B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -65,7 +65,6 @@ h1,h2,h3{font-family:var(--f-display);font-stretch:85%;text-wrap:balance;margin:
 .brand i{display:inline-block;width:14px;height:14px;background:var(--mark);border-radius:2px;transform:rotate(45deg)}
 .top .back{background:none;border:0;padding:4px 6px 4px 0;font-size:15px;display:flex;align-items:center;gap:4px;color:inherit}
 .top .ttl{font-family:var(--f-display);font-weight:700;font-stretch:85%;font-size:18px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.store-pill{margin-left:auto;font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.7}
 
 main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 110px}
 .wrap{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
@@ -189,14 +188,17 @@ ul.clean{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
 .meas{display:grid;grid-template-columns:1fr 90px 64px;gap:8px;align-items:center}
 .meas .in{padding:7px 9px;font-size:14px}
+.langsw{margin-left:auto;display:inline-flex;border:1px solid color-mix(in srgb,var(--chrome-ink) 30%,transparent);border-radius:7px;overflow:hidden;flex:none}
+.langsw button{background:none;border:0;color:inherit;font-size:12px;font-weight:600;letter-spacing:.05em;padding:5px 8px;opacity:.7}
+.langsw button[aria-pressed="true"]{background:var(--mark);color:var(--mark-ink);opacity:1}
 </style>
 </head>
 <body>
 <header class="top"><div class="top-in" id="topbar"></div></header>
 <main><div class="wrap" id="view"></div></main>
-<nav class="tabs" aria-label="Navegação"><div class="tabs-in" id="tabs"></div></nav>
-<input type="file" id="camIn" accept="image/*" capture="environment" class="vh" aria-label="Tirar foto">
-<input type="file" id="galIn" accept="image/*" multiple class="vh" aria-label="Escolher fotos">
+<nav class="tabs" id="tabnav"><div class="tabs-in" id="tabs"></div></nav>
+<input type="file" id="camIn" accept="image/*" capture="environment" class="vh" aria-label="Camera">
+<input type="file" id="galIn" accept="image/*" multiple class="vh" aria-label="Photos">
 
 <script>
 (() => {
@@ -213,91 +215,380 @@ const I = {
   plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
 };
 
+/* ---------- runtime: inside Claude (artifact) or a normal web page ---------- */
+const IN_CLAUDE = !!(window.claude && typeof window.claude.use === "function");
+
+/* ---------- i18n ---------- */
+const LANGS = { en:"EN", es:"ES", pt:"PT" };
+const LOCALE = { en:"en-US", es:"es-US", pt:"pt-BR" };
+const LANG_NAME = { en:"American English", es:"Spanish (as spoken in the United States)", pt:"Brazilian Portuguese" };
+const STR = {
+en:{
+  nav:"Navigation", tabHome:"Projects", tabNew:"New", tabPrices:"My prices", tabSettings:"Settings", back:"Back",
+  savedAccount:"Saved to your account", savedDevice:"Saved on this device", loading:"Loading your estimates",
+  heroA:"Snap the job.", heroB:"True cost", heroC:"in minutes.",
+  heroP:"Take photos of the space, describe the work and get materials, labor and a total, line by line, using your own prices.",
+  newEstimate:"New estimate", projects:"Projects", nEstimates:"{n} estimates", oneEstimate:"1 estimate",
+  example:"Example", waitingQ:" · waiting for answers",
+  exampleNote:"The project above is an example so you can see the result. Your estimates show up here once you create the first one.",
+  aiOffClaude:"AI works only when this page is open in Claude. You can still view projects and edit items and prices.",
+  aiOffKey:"To use the AI, add your Anthropic API key. It stays on this device only.", addKey:"Add key in Settings",
+  step:"Step {n} of 3", step1:"Step 1 · Photos & description", step1H:"What are we pricing?",
+  camera:"Camera", gallery:"Gallery", removePhoto:"Remove photo", sitePhoto:"Job site photo",
+  photoTip:"Shoot the whole room plus the details that drive cost. Keep a door or outlet in frame for scale. Up to {n} photos.",
+  noImg:"This view can't send photos to the AI. Describe the work and include measurements.",
+  descL:"Describe the work", descPh:"e.g. replace kitchen floor with 24×24 porcelain tile, remove the old vinyl, kitchen is 10 × 12 ft",
+  locL:"Job location", locPh:"City, State", analyze:"Analyze with AI",
+  step2:"Step 2 · Confirm the details", project:"Project", aiSaw:"What the AI saw",
+  measTitle:"Estimated measurements · fix if you know them", qTitle:"Questions that change the price",
+  otherAnswer:"Other answer (optional)", extraL:"Anything else to consider? (optional)",
+  extraPh:"e.g. client already bought the tile; second-floor walk-up", generate:"Generate estimate",
+  writing:"Writing the result…", thinking:"Thinking. With photos this can take up to a minute.", stop:"Stop",
+  busyAnalyze:"Analyzing photos and description", busyEstimate:"Building the line-item estimate", busyRefine:"Updating the estimate",
+  notFound:"Project not found.", noEstimate:"This project doesn't have an estimate yet.",
+  noEstimateSub:"The analysis is done, but the questions weren't answered.", resume:"Continue",
+  exampleBanner:"Example to show what an estimate looks like. Changes here aren't saved.",
+  totalEst:"Estimated total", confidence:"confidence {c}", range:"likely range {a} – {b}", split:"Cost split",
+  lastChange:"Last change: {c}", scope:"Scope", duration:"Estimated duration: {n} day(s)", crew:" · Crew: {c}",
+  item:"Item", fromList:"From my price list", newGroup:"New phase", closing:"Totals",
+  direct:"Direct cost", contingency:"Contingency", markup:"Overhead & profit", tax:"Sales tax", total:"Total",
+  assumptions:"Assumptions", exclusions:"Not included", upsellsT:"Add-ons to offer", include:"Add",
+  refineT:"Adjust with AI", refinePh:"e.g. switch to builder-grade paint; add 3-in baseboard; the living room is 16 × 13 ft", refineBtn:"Adjust",
+  refineNoAI:"Available once the AI is set up.", refineEx:"Create your own estimate to adjust it with AI.",
+  shareT:"Send & export", copyEst:"Copy estimate", clientMsg:"Client message", dlQuote:"Download quote", dlCsv:"Download spreadsheet",
+  msgT:"Message for text or email", copyMsg:"Copy message", dup:"Duplicate estimate",
+  delAsk:"Delete “{n}” for good?", cancel:"Cancel", del:"Delete", delBtn:"Delete estimate",
+  desc:"Description", qty:"Qty", unit:"Unit", unitPrice:"Unit price", saveToList:"Save to price list", remove:"Remove", ok:"OK",
+  kMat:"Materials", kLab:"Labor", kOth:"Other",
+  pricesEy:"My prices", pricesH:"Your price list sets the price",
+  pricesP:"The AI uses these numbers whenever an item matches. Add what you pay your suppliers and what you charge for labor.",
+  pbItem:"Item", pbItemPh:"e.g. 24×24 porcelain tile, Daltile", pbUnit:"Unit", pbUnitPh:"sq ft", pbPrice:"Price ({c})", pbPricePh:"4.29",
+  pbCat:"Category (optional)", pbCatPh:"Flooring, Electrical, Labor…", pbAdd:"Add to price list",
+  pbEmpty:"No prices yet. Tip: when editing an estimate item, tap “Save to price list”.", per:"per {u}",
+  setEy:"Settings", setH:"Estimate defaults",
+  keyT:"Anthropic API key", keyOn:"set", keyOff:"not set", test:"Test", save:"Save",
+  keyHelp:"Create a key at {link} and add credits to the account. The key is stored only in this browser and goes straight to Anthropic's API. Set a spending limit in the console to be safe. A typical estimate with photos costs a few cents.",
+  keyBadFormat:"Keys start with sk-ant-. Copy it again from the console.", keySaved:"Key saved on this device. Tap Test to check it.",
+  keyTesting:"Testing…", keyWorks:"Key works.", keyRemoved:"Key removed from this device.", keyBlocked:"This browser blocked saving.",
+  company:"Your name or company (shown on the quote)", companyPh:"e.g. Smith Remodeling",
+  region:"Pricing region", regionPh:"City, State", labor:"Your hourly labor rate ({c})", currency:"Currency", units:"Units",
+  imperial:"US (ft, sq ft)", metric:"Metric (m, m²)", defaultsT:"Default totals for new estimates",
+  contPct:"Contingency %", mkPct:"Overhead & profit %", taxPct:"Sales tax %",
+  precisionT:"AI precision", pQuick:"Fast", pDefault:"Standard", pComplex:"Max",
+  precisionHelpClaude:"“Max” thinks longer and makes fewer mistakes on big jobs, but takes longer and uses more of your Claude limit.",
+  precisionHelpApi:"All use Claude Opus 5.5. “Max” thinks longer and makes fewer mistakes on big jobs, but takes longer and costs more per estimate; “Fast” is cheapest.",
+  backupT:"Backup", backupHelp:"Export a backup now and then, or to move your estimates to another device. The API key is never included.",
+  exportB:"Export backup", importB:"Import backup", storedAccount:"Your estimates are saved to your Claude account, visible only to you.",
+  storedDevice:"Your estimates are saved in this browser.",
+  backupOk:"Backup imported: {n} estimate(s).", backupBad:"That file isn't a TrueCost backup.",
+  priceAdded:"Price added.", priceUpdated:"Price updated in your list.", priceSaved:"Saved to your price list.",
+  addonAdded:"Add-on included.", addonsGroup:"Add-ons", newItem:"New item", newPhase:"New phase",
+  copyOf:"{n} (copy)", copyCreated:"Copy created.", deleted:"Estimate deleted.", updated:"Estimate updated.",
+  copied:"Copied.", copyManual:"Select and copy manually.", downloaded:"File downloaded.", saved:"File saved.", notSaved:"The file wasn't saved.",
+  maxPhotos:"Up to {n} photos per estimate.", badImage:"Couldn't open that image.", saveFail:"Couldn't save right now.",
+  storageFull:"Storage is full. Export a backup and delete old estimates.", loadFail:"Couldn't load your estimates right now.",
+  pickT:"Add from my price list", close:"Close", notGiven:"not given", extraQ:"Additional notes",
+  quoteT:"Estimate", validFor:"valid for 15 days", directCost:"Direct cost", durationL:"Estimated duration", daysN:"{n} day(s)",
+  csvHead:["Phase","Type","Item","Qty","Unit","Unit price","Total"], newProject:"New estimate",
+  err:{ not_granted:"You haven't allowed this page to use Claude.", sampling_disabled:"Claude isn't available for this account.",
+    rate_limited:"Too many requests in a row. Wait a bit and try again.", image_rejected:"One of the photos couldn't be read. Try another.",
+    images_unavailable:"This view can't send photos. Describe the work in text.", invalid_json:"The answer came back incomplete. Try again.",
+    refused:"The request was declined. Rephrase the description.", session_expired:"Your session expired. Sign in to Claude again.",
+    prompt_too_large:"Too much at once. Shorten the description.", cancelled:"Canceled.",
+    no_key:"Add your API key in Settings to use the AI.", bad_key:"Invalid API key or missing permission. Check Settings.",
+    overloaded:"The API is overloaded right now. Try again shortly.", network:"Can't reach the API. Check your connection.",
+    sdk_load:"Couldn't load the AI connector. Check your connection.", bad_request:"The API rejected the request. Try fewer photos or a shorter description.",
+    empty_completion:"The AI didn't answer. Try again.", fallback:"Couldn't reach the AI. Try again." }
+},
+es:{
+  nav:"Navegación", tabHome:"Proyectos", tabNew:"Nuevo", tabPrices:"Mis precios", tabSettings:"Ajustes", back:"Volver",
+  savedAccount:"Guardado en tu cuenta", savedDevice:"Guardado en este dispositivo", loading:"Cargando tus presupuestos",
+  heroA:"Foto de la obra.", heroB:"Costo real", heroC:"en minutos.",
+  heroP:"Toma fotos del espacio, describe el trabajo y recibe materiales, mano de obra y total, partida por partida, con tus propios precios.",
+  newEstimate:"Nuevo presupuesto", projects:"Proyectos", nEstimates:"{n} presupuestos", oneEstimate:"1 presupuesto",
+  example:"Ejemplo", waitingQ:" · esperando respuestas",
+  exampleNote:"El proyecto de arriba es un ejemplo para que veas el resultado. Tus presupuestos aparecerán aquí cuando crees el primero.",
+  aiOffClaude:"La IA solo funciona con esta página abierta en Claude. Aun así puedes ver proyectos y editar partidas y precios.",
+  aiOffKey:"Para usar la IA, agrega tu clave de la API de Anthropic. Se guarda solo en este dispositivo.", addKey:"Agregar clave en Ajustes",
+  step:"Paso {n} de 3", step1:"Paso 1 · Fotos y descripción", step1H:"¿Qué vamos a presupuestar?",
+  camera:"Cámara", gallery:"Galería", removePhoto:"Quitar foto", sitePhoto:"Foto de la obra",
+  photoTip:"Fotografía todo el espacio y los detalles que afectan el costo. Incluye una puerta o un enchufe en la foto como escala. Hasta {n} fotos.",
+  noImg:"Esta vista no puede enviar fotos a la IA. Describe el trabajo con medidas.",
+  descL:"Describe el trabajo", descPh:"p. ej.: cambiar el piso de la cocina por porcelanato 24×24, quitar el vinilo viejo, cocina de 10 × 12 ft",
+  locL:"Ubicación de la obra", locPh:"Ciudad, Estado", analyze:"Analizar con IA",
+  step2:"Paso 2 · Confirma los detalles", project:"Proyecto", aiSaw:"Lo que vio la IA",
+  measTitle:"Medidas estimadas · corrígelas si las sabes", qTitle:"Preguntas que cambian el precio",
+  otherAnswer:"Otra respuesta (opcional)", extraL:"¿Algo más a considerar? (opcional)",
+  extraPh:"p. ej.: el cliente ya compró el piso; segundo piso sin elevador", generate:"Generar presupuesto",
+  writing:"Escribiendo el resultado…", thinking:"Pensando. Con fotos puede tardar hasta un minuto.", stop:"Detener",
+  busyAnalyze:"Analizando fotos y descripción", busyEstimate:"Armando el presupuesto partida por partida", busyRefine:"Ajustando el presupuesto",
+  notFound:"Proyecto no encontrado.", noEstimate:"Este proyecto todavía no tiene presupuesto.",
+  noEstimateSub:"El análisis está hecho, pero faltan las respuestas.", resume:"Continuar",
+  exampleBanner:"Ejemplo para mostrar cómo queda un presupuesto. Los cambios aquí no se guardan.",
+  totalEst:"Total estimado", confidence:"confianza {c}", range:"rango probable {a} – {b}", split:"Distribución de costos",
+  lastChange:"Último cambio: {c}", scope:"Alcance", duration:"Duración estimada: {n} día(s)", crew:" · Equipo: {c}",
+  item:"Partida", fromList:"De mi lista de precios", newGroup:"Nueva etapa", closing:"Cierre",
+  direct:"Costo directo", contingency:"Contingencia", markup:"Gastos generales y ganancia", tax:"Impuesto sobre ventas", total:"Total",
+  assumptions:"Supuestos", exclusions:"No incluido", upsellsT:"Adicionales para ofrecer", include:"Agregar",
+  refineT:"Ajustar con IA", refinePh:"p. ej.: cambiar a pintura económica; agregar zoclo de 3 in; la sala mide 16 × 13 ft", refineBtn:"Ajustar",
+  refineNoAI:"Disponible cuando la IA esté configurada.", refineEx:"Crea tu propio presupuesto para ajustarlo con IA.",
+  shareT:"Enviar y exportar", copyEst:"Copiar presupuesto", clientMsg:"Mensaje al cliente", dlQuote:"Descargar presupuesto", dlCsv:"Descargar hoja de cálculo",
+  msgT:"Mensaje para texto o correo", copyMsg:"Copiar mensaje", dup:"Duplicar presupuesto",
+  delAsk:"¿Eliminar “{n}” definitivamente?", cancel:"Cancelar", del:"Eliminar", delBtn:"Eliminar presupuesto",
+  desc:"Descripción", qty:"Cant.", unit:"Unidad", unitPrice:"Precio unit.", saveToList:"Guardar en mi lista", remove:"Quitar", ok:"OK",
+  kMat:"Materiales", kLab:"Mano de obra", kOth:"Otros",
+  pricesEy:"Mis precios", pricesH:"Tu lista de precios manda",
+  pricesP:"La IA usa estos valores cuando una partida coincide. Agrega lo que pagas a tus proveedores y lo que cobras de mano de obra.",
+  pbItem:"Partida", pbItemPh:"p. ej.: porcelanato 24×24, Daltile", pbUnit:"Unidad", pbUnitPh:"sq ft", pbPrice:"Precio ({c})", pbPricePh:"4.29",
+  pbCat:"Categoría (opcional)", pbCatPh:"Pisos, Eléctrico, Mano de obra…", pbAdd:"Agregar a la lista",
+  pbEmpty:"Todavía no hay precios. Consejo: al editar una partida, toca “Guardar en mi lista”.", per:"por {u}",
+  setEy:"Ajustes", setH:"Valores predeterminados",
+  keyT:"Clave de la API de Anthropic", keyOn:"configurada", keyOff:"sin configurar", test:"Probar", save:"Guardar",
+  keyHelp:"Crea la clave en {link} y agrega créditos a la cuenta. La clave se guarda solo en este navegador y va directo a la API de Anthropic. Pon un límite de gasto en la consola por seguridad. Un presupuesto con fotos suele costar unos centavos.",
+  keyBadFormat:"La clave empieza con sk-ant-. Cópiala de nuevo desde la consola.", keySaved:"Clave guardada en este dispositivo. Toca Probar para verificarla.",
+  keyTesting:"Probando…", keyWorks:"La clave funciona.", keyRemoved:"Clave eliminada de este dispositivo.", keyBlocked:"Este navegador bloqueó el guardado.",
+  company:"Tu nombre o empresa (aparece en el presupuesto)", companyPh:"p. ej.: García Remodelaciones",
+  region:"Región de precios", regionPh:"Ciudad, Estado", labor:"Tu tarifa de mano de obra por hora ({c})", currency:"Moneda", units:"Medidas",
+  imperial:"EE. UU. (ft, sq ft)", metric:"Métrico (m, m²)", defaultsT:"Cierre predeterminado para nuevos presupuestos",
+  contPct:"Contingencia %", mkPct:"Gastos generales y ganancia %", taxPct:"Impuesto sobre ventas %",
+  precisionT:"Precisión de la IA", pQuick:"Rápida", pDefault:"Estándar", pComplex:"Máxima",
+  precisionHelpClaude:"“Máxima” piensa más y se equivoca menos en obras grandes, pero tarda más y usa más de tu límite en Claude.",
+  precisionHelpApi:"Todas usan Claude Opus 5.5. “Máxima” piensa más y se equivoca menos en obras grandes, pero tarda más y cuesta más por presupuesto; “Rápida” es la más barata.",
+  backupT:"Respaldo", backupHelp:"Exporta un respaldo de vez en cuando, o para pasar tus presupuestos a otro dispositivo. La clave de la API nunca se incluye.",
+  exportB:"Exportar respaldo", importB:"Importar respaldo", storedAccount:"Tus presupuestos se guardan en tu cuenta de Claude, visibles solo para ti.",
+  storedDevice:"Tus presupuestos se guardan en este navegador.",
+  backupOk:"Respaldo importado: {n} presupuesto(s).", backupBad:"Ese archivo no es un respaldo de TrueCost.",
+  priceAdded:"Precio agregado.", priceUpdated:"Precio actualizado en tu lista.", priceSaved:"Guardado en tu lista.",
+  addonAdded:"Adicional incluido.", addonsGroup:"Adicionales", newItem:"Nueva partida", newPhase:"Nueva etapa",
+  copyOf:"{n} (copia)", copyCreated:"Copia creada.", deleted:"Presupuesto eliminado.", updated:"Presupuesto actualizado.",
+  copied:"Copiado.", copyManual:"Selecciona y copia manualmente.", downloaded:"Archivo descargado.", saved:"Archivo guardado.", notSaved:"El archivo no se guardó.",
+  maxPhotos:"Hasta {n} fotos por presupuesto.", badImage:"No pude abrir esa imagen.", saveFail:"No se pudo guardar ahora.",
+  storageFull:"Almacenamiento lleno. Exporta un respaldo y elimina presupuestos viejos.", loadFail:"No pude cargar tus presupuestos ahora.",
+  pickT:"Agregar de mi lista de precios", close:"Cerrar", notGiven:"no indicado", extraQ:"Notas adicionales",
+  quoteT:"Presupuesto", validFor:"válido por 15 días", directCost:"Costo directo", durationL:"Duración estimada", daysN:"{n} día(s)",
+  csvHead:["Etapa","Tipo","Partida","Cant.","Unidad","Precio unitario","Total"], newProject:"Nuevo presupuesto",
+  err:{ not_granted:"No autorizaste a esta página a usar Claude.", sampling_disabled:"Claude no está disponible en esta cuenta.",
+    rate_limited:"Demasiadas solicitudes seguidas. Espera un poco e inténtalo de nuevo.", image_rejected:"Una de las fotos no se pudo leer. Prueba otra.",
+    images_unavailable:"Esta vista no envía fotos. Describe el trabajo en texto.", invalid_json:"La respuesta llegó incompleta. Inténtalo de nuevo.",
+    refused:"La solicitud fue rechazada. Reformula la descripción.", session_expired:"Tu sesión expiró. Vuelve a entrar en Claude.",
+    prompt_too_large:"Demasiada información a la vez. Acorta la descripción.", cancelled:"Cancelado.",
+    no_key:"Agrega tu clave de la API en Ajustes para usar la IA.", bad_key:"Clave de API inválida o sin permiso. Revisa Ajustes.",
+    overloaded:"La API está saturada. Inténtalo en un momento.", network:"No hay conexión con la API. Revisa tu internet.",
+    sdk_load:"No pude cargar el conector de la IA. Revisa tu internet.", bad_request:"La API rechazó la solicitud. Prueba con menos fotos o una descripción más corta.",
+    empty_completion:"La IA no respondió. Inténtalo de nuevo.", fallback:"No se pudo hablar con la IA. Inténtalo de nuevo." }
+},
+pt:{
+  nav:"Navegação", tabHome:"Projetos", tabNew:"Novo", tabPrices:"Meus preços", tabSettings:"Ajustes", back:"Voltar",
+  savedAccount:"Salvo na sua conta", savedDevice:"Salvo neste aparelho", loading:"Carregando seus orçamentos",
+  heroA:"Foto da obra.", heroB:"Custo real", heroC:"em minutos.",
+  heroP:"Tire fotos do ambiente, descreva o serviço e receba materiais, mão de obra e total, item por item, com os seus preços.",
+  newEstimate:"Novo orçamento", projects:"Projetos", nEstimates:"{n} orçamentos", oneEstimate:"1 orçamento",
+  example:"Exemplo", waitingQ:" · aguardando respostas",
+  exampleNote:"O projeto acima é um exemplo para você ver o resultado. Seus orçamentos aparecem aqui assim que você criar o primeiro.",
+  aiOffClaude:"A IA só funciona com a página aberta no Claude. Aqui você ainda pode ver projetos e editar itens e preços.",
+  aiOffKey:"Para usar a IA, cadastre sua chave da API da Anthropic. Ela fica salva só neste aparelho.", addKey:"Cadastrar chave em Ajustes",
+  step:"Etapa {n} de 3", step1:"Etapa 1 · Fotos e descrição", step1H:"O que vamos orçar?",
+  camera:"Câmera", gallery:"Galeria", removePhoto:"Remover foto", sitePhoto:"Foto do local",
+  photoTip:"Fotografe o ambiente inteiro e os detalhes que afetam o custo. Inclua uma porta ou tomada no quadro para dar escala. Até {n} fotos.",
+  noImg:"Esta visualização não envia fotos para a IA. Descreva o serviço com as medidas.",
+  descL:"Descrição do serviço", descPh:"Ex.: trocar piso da cozinha por porcelanato 24×24, remover o vinílico antigo, cozinha de 10 × 12 ft",
+  locL:"Local da obra", locPh:"Cidade, Estado", analyze:"Analisar com IA",
+  step2:"Etapa 2 · Confirme os detalhes", project:"Projeto", aiSaw:"O que a IA viu",
+  measTitle:"Medidas estimadas · corrija se souber", qTitle:"Perguntas que mudam o preço",
+  otherAnswer:"Outra resposta (opcional)", extraL:"Algo mais a considerar? (opcional)",
+  extraPh:"Ex.: cliente já comprou o piso; acesso só por escada", generate:"Gerar orçamento",
+  writing:"Escrevendo o resultado…", thinking:"Pensando. Com fotos, pode levar até um minuto.", stop:"Parar",
+  busyAnalyze:"Analisando fotos e descrição", busyEstimate:"Montando o orçamento item a item", busyRefine:"Ajustando o orçamento",
+  notFound:"Projeto não encontrado.", noEstimate:"Este projeto ainda não tem orçamento.",
+  noEstimateSub:"A análise foi feita, mas as perguntas não foram respondidas.", resume:"Continuar",
+  exampleBanner:"Exemplo para mostrar como fica um orçamento. Alterações aqui não são salvas.",
+  totalEst:"Total estimado", confidence:"confiança {c}", range:"faixa provável {a} – {b}", split:"Divisão de custos",
+  lastChange:"Última alteração: {c}", scope:"Escopo", duration:"Prazo estimado: {n} dia(s)", crew:" · Equipe: {c}",
+  item:"Item", fromList:"Da minha tabela", newGroup:"Nova etapa", closing:"Fechamento",
+  direct:"Custo direto", contingency:"Contingência", markup:"Despesas e lucro", tax:"Impostos sobre vendas", total:"Total",
+  assumptions:"Premissas", exclusions:"Não incluso", upsellsT:"Adicionais para oferecer", include:"Incluir",
+  refineT:"Ajustar com IA", refinePh:"Ex.: trocar para tinta econômica; incluir rodapé de 3 in; a sala tem 16 × 13 ft", refineBtn:"Ajustar",
+  refineNoAI:"Disponível quando a IA estiver configurada.", refineEx:"Crie um orçamento seu para usar os ajustes por IA.",
+  shareT:"Enviar e exportar", copyEst:"Copiar orçamento", clientMsg:"Mensagem p/ cliente", dlQuote:"Baixar orçamento", dlCsv:"Baixar planilha",
+  msgT:"Mensagem para WhatsApp/e-mail", copyMsg:"Copiar mensagem", dup:"Duplicar orçamento",
+  delAsk:"Excluir “{n}” de vez?", cancel:"Cancelar", del:"Excluir", delBtn:"Excluir orçamento",
+  desc:"Descrição", qty:"Qtd", unit:"Unid.", unitPrice:"Preço un.", saveToList:"Salvar na tabela", remove:"Remover", ok:"OK",
+  kMat:"Materiais", kLab:"Mão de obra", kOth:"Outros",
+  pricesEy:"Meus preços", pricesH:"Sua tabela manda no preço",
+  pricesP:"A IA usa estes valores sempre que um item bater com a tabela. Cadastre o que você paga no seu fornecedor e o seu preço de mão de obra por serviço.",
+  pbItem:"Item", pbItemPh:"Ex.: Porcelanato 24×24, Daltile", pbUnit:"Unidade", pbUnitPh:"sq ft", pbPrice:"Preço ({c})", pbPricePh:"4,29",
+  pbCat:"Categoria (opcional)", pbCatPh:"Piso, Elétrica, Mão de obra…", pbAdd:"Adicionar à tabela",
+  pbEmpty:"Nenhum preço cadastrado ainda. Dica: ao editar um item num orçamento, toque em “Salvar na tabela”.", per:"por {u}",
+  setEy:"Ajustes", setH:"Padrões dos orçamentos",
+  keyT:"Chave da API Anthropic", keyOn:"configurada", keyOff:"não configurada", test:"Testar", save:"Salvar",
+  keyHelp:"Crie a chave em {link} e coloque créditos na conta. A chave fica salva só neste navegador e vai direto para a API da Anthropic. Defina um limite de gasto no console por segurança. Cada orçamento com fotos custa em geral poucos centavos de dólar.",
+  keyBadFormat:"A chave começa com sk-ant-. Copie de novo do console.", keySaved:"Chave salva neste aparelho. Toque em Testar para conferir.",
+  keyTesting:"Testando…", keyWorks:"Chave funcionando.", keyRemoved:"Chave removida deste aparelho.", keyBlocked:"Este navegador bloqueou o salvamento.",
+  company:"Seu nome ou empresa (aparece no orçamento)", companyPh:"Ex.: Silva Reformas",
+  region:"Região de preços", regionPh:"Cidade, Estado", labor:"Valor da sua hora de mão de obra ({c})", currency:"Moeda", units:"Medidas",
+  imperial:"EUA (ft, sq ft)", metric:"Métrico (m, m²)", defaultsT:"Fechamento padrão para novos orçamentos",
+  contPct:"Contingência %", mkPct:"Despesas e lucro %", taxPct:"Impostos sobre vendas %",
+  precisionT:"Precisão da IA", pQuick:"Rápida", pDefault:"Padrão", pComplex:"Máxima",
+  precisionHelpClaude:"“Máxima” pensa mais e erra menos em obras grandes, mas demora mais e usa mais do seu limite no Claude.",
+  precisionHelpApi:"Todas usam o Claude Opus 5.5. “Máxima” pensa mais e erra menos em obras grandes, mas demora mais e custa mais por orçamento; “Rápida” é a mais barata.",
+  backupT:"Backup", backupHelp:"Exporte um backup de vez em quando, ou para passar seus orçamentos para outro aparelho. A chave da API nunca vai no backup.",
+  exportB:"Exportar backup", importB:"Importar backup", storedAccount:"Seus orçamentos ficam salvos na sua conta Claude, visíveis só para você.",
+  storedDevice:"Seus orçamentos ficam salvos neste navegador.",
+  backupOk:"Backup importado: {n} orçamento(s).", backupBad:"Esse arquivo não é um backup do TrueCost.",
+  priceAdded:"Preço adicionado.", priceUpdated:"Preço atualizado na sua tabela.", priceSaved:"Salvo na sua tabela.",
+  addonAdded:"Adicional incluído.", addonsGroup:"Adicionais", newItem:"Novo item", newPhase:"Nova etapa",
+  copyOf:"{n} (cópia)", copyCreated:"Cópia criada.", deleted:"Orçamento excluído.", updated:"Orçamento atualizado.",
+  copied:"Copiado.", copyManual:"Selecione e copie manualmente.", downloaded:"Arquivo baixado.", saved:"Arquivo salvo.", notSaved:"O arquivo não foi salvo.",
+  maxPhotos:"Máximo de {n} fotos por orçamento.", badImage:"Não consegui abrir essa imagem.", saveFail:"Não foi possível salvar agora.",
+  storageFull:"Armazenamento cheio. Exporte um backup e exclua orçamentos antigos.", loadFail:"Não consegui carregar seus orçamentos agora.",
+  pickT:"Adicionar da minha tabela", close:"Fechar", notGiven:"não informado", extraQ:"Observações adicionais",
+  quoteT:"Orçamento", validFor:"válido por 15 dias", directCost:"Custo direto", durationL:"Prazo estimado", daysN:"{n} dia(s)",
+  csvHead:["Etapa","Tipo","Item","Qtd","Unidade","Preço unitário","Total"], newProject:"Novo orçamento",
+  err:{ not_granted:"Você não autorizou o uso do Claude nesta página.", sampling_disabled:"O Claude não está disponível nesta conta.",
+    rate_limited:"Muitas solicitações seguidas. Aguarde um pouco e tente de novo.", image_rejected:"Uma das fotos não pôde ser lida. Tente outra foto.",
+    images_unavailable:"Esta visualização não envia fotos. Descreva o serviço em texto.", invalid_json:"A resposta veio incompleta. Tente de novo.",
+    refused:"O pedido foi recusado. Reformule a descrição.", session_expired:"Sua sessão expirou. Entre novamente no Claude.",
+    prompt_too_large:"Informação demais de uma vez. Reduza a descrição.", cancelled:"Cancelado.",
+    no_key:"Cadastre sua chave da API em Ajustes para usar a IA.", bad_key:"Chave da API inválida ou sem permissão. Confira em Ajustes.",
+    overloaded:"A API está sobrecarregada agora. Tente de novo em instantes.", network:"Sem conexão com a API. Verifique a internet.",
+    sdk_load:"Não consegui carregar o conector da IA. Verifique a internet.", bad_request:"A API recusou o pedido. Tente com menos fotos ou uma descrição menor.",
+    empty_completion:"A IA não respondeu. Tente de novo.", fallback:"Falha ao falar com a IA. Tente de novo." }
+}};
+const lang = () => STR[state.settings.lang] ? state.settings.lang : "en";
+function t(k, v){ let s = STR[lang()][k] ?? STR.en[k] ?? k; if(v) for(const x in v) s = s.split("{" + x + "}").join(v[x]); return s; }
+
 /* ---------- helpers ---------- */
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
-const num = v => { const n = typeof v === "number" ? v : parseFloat(String(v ?? "").replace(/\s/g,"").replace(/\.(?=\d{3}(\D|$))/g,"").replace(",", ".")); return isFinite(n) ? n : 0; };
+/* Parses what people type: "1,250.5" in English/Spanish, "1.250,5" in Portuguese. */
+function num(v){
+  if(typeof v === "number") return isFinite(v) ? v : 0;
+  let s = String(v ?? "").replace(/\s/g, "");
+  s = lang() === "pt" ? s.replace(/\./g, "").replace(",", ".") : s.replace(/,/g, "");
+  const n = parseFloat(s); return isFinite(n) ? n : 0;
+}
+const fmtIn = n => lang() === "pt" ? String(n ?? "").replace(".", ",") : String(n ?? "");
+const fmtQty = n => new Intl.NumberFormat(LOCALE[lang()], { maximumFractionDigits: 2 }).format(num(n));
 const clone = o => JSON.parse(JSON.stringify(o));
 let toastT;
-function toast(msg){ let t = $(".toast"); if(!t){ t = document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); document.body.appendChild(t);} t.textContent = msg; t.hidden=false; clearTimeout(toastT); toastT = setTimeout(()=>t.hidden=true, 2600); }
-const CUR = { BRL:"pt-BR", USD:"en-US", EUR:"pt-PT" };
-function money(v, s = state.settings){ try { return new Intl.NumberFormat(CUR[s.currency]||"pt-BR",{style:"currency",currency:s.currency||"BRL"}).format(v||0);} catch { return (v||0).toFixed(2); } }
-const fmtDate = ts => new Date(ts).toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"});
+function toast(msg){ let el = $(".toast"); if(!el){ el = document.createElement("div"); el.className = "toast"; el.setAttribute("role","status"); document.body.appendChild(el); } el.textContent = msg; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => el.hidden = true, 2600); }
+function money(v, cur){ cur = cur || state.settings.currency || "USD"; try{ return new Intl.NumberFormat(LOCALE[lang()], { style:"currency", currency:cur }).format(v || 0); }catch{ return (v || 0).toFixed(2); } }
+const fmtDate = ts => new Date(ts).toLocaleDateString(LOCALE[lang()], { month:"short", day:"numeric", year:"numeric" });
 
 /* ---------- defaults ---------- */
-const DEFAULT_SETTINGS = { currency:"BRL", region:"São Paulo, SP", units:"métrico", laborRate:45, contingency:10, markup:20, tax:0, company:"", tier:"default" };
-const KIND = { material:{label:"Materiais", color:"var(--mat)"}, labor:{label:"Mão de obra", color:"var(--lab)"}, other:{label:"Outros", color:"var(--oth)"} };
+const DEFAULT_SETTINGS = { v:2, lang:"en", currency:"USD", region:"", units:"imperial", laborRate:65, contingency:10, markup:20, tax:0, company:"", tier:"default" };
+const KIND_COLOR = { material:"var(--mat)", labor:"var(--lab)", other:"var(--oth)" };
+const KINDS = ["material","labor","other"];
+const kindLabel = k => t({ material:"kMat", labor:"kLab", other:"kOth" }[k]);
 
-/* Example shown while there are no saved projects. Clearly marked as an example. */
-const EXAMPLE = {
-  id:"exemplo", example:true, name:"Pintura de sala e cozinha", createdAt:Date.now(), updatedAt:Date.now(),
-  description:"Repintar paredes e teto da sala (4,2 × 3,6 m) e cozinha, cor branco gelo. Paredes com pequenas trincas.",
-  location:"São Paulo, SP", thumbs:[],
-  adj:{contingency:10, markup:20, tax:0},
-  estimate:{
-    scope:"Preparação, correção de trincas e pintura de paredes e teto (≈ 78 m²) em sala e cozinha, duas demãos, acabamento fosco.",
-    groups:[
-      {name:"Preparação", items:[
-        {kind:"material",name:"Massa corrida PVA 25 kg",qty:1,unit:"balde",unitPrice:89.9},
-        {kind:"material",name:"Lixa 150/220 + fita crepe",qty:1,unit:"kit",unitPrice:42},
-        {kind:"material",name:"Lona plástica 4×5 m",qty:2,unit:"un",unitPrice:18.5},
-        {kind:"labor",name:"Proteção, lixamento e correção de trincas",qty:8,unit:"h",unitPrice:45}]},
-      {name:"Pintura", items:[
-        {kind:"material",name:"Tinta acrílica fosca premium 18 L",qty:2,unit:"lata",unitPrice:389.9},
-        {kind:"material",name:"Selador acrílico 18 L",qty:1,unit:"lata",unitPrice:159},
-        {kind:"material",name:"Rolo de lã 23 cm + bandeja + trincha",qty:1,unit:"kit",unitPrice:64.9},
-        {kind:"labor",name:"Pintura paredes e teto (2 demãos)",qty:78,unit:"m²",unitPrice:18}]},
-      {name:"Encerramento", items:[
-        {kind:"other",name:"Limpeza final e descarte de resíduos",qty:1,unit:"vb",unitPrice:120}]}
-    ],
-    assumptions:["Pé-direito de 2,70 m","Paredes sem infiltração ativa","Móveis afastados pelo cliente"],
-    exclusions:["Pintura de portas e rodapés","Reparo de reboco solto"],
-    durationDays:4, crew:"1 pintor + 1 ajudante", confidence:"média", rangePct:12,
-    upsells:[{name:"Pintura de portas (2 un.)",price:380},{name:"Textura em parede de destaque",price:650}]
-  }
+/* Example shown while there are no saved projects, in the current language. Clearly marked as an example. */
+const EX_TEXT = {
+  en:{ name:"Living room & kitchen repaint", desc:"Repaint walls and ceiling in the living room (14 × 12 ft) and kitchen, off-white. A few hairline cracks in the drywall.",
+    loc:"Austin, TX", g:["Prep","Painting","Wrap-up"],
+    it:["All-purpose joint compound, 4.5 gal","Sandpaper + painter's tape kit","Plastic drop cloth 9 × 12 ft","Masking, sanding and crack repair","Interior eggshell paint, 5 gal","Drywall primer, 5 gal","9-in roller, tray and brush kit","Walls & ceiling, 2 coats","Final cleanup and debris disposal"],
+    scope:"Prep, crack repair and painting of walls and ceiling (≈ 840 sq ft) in the living room and kitchen, two coats, eggshell finish.",
+    as:["9 ft ceilings","No active leaks or water damage","Client clears furniture"], ex:["Doors and trim","Loose plaster repair"],
+    crew:"1 painter + 1 helper", conf:"medium", up:["Paint 2 interior doors","Accent wall"] },
+  es:{ name:"Pintura de sala y cocina", desc:"Repintar paredes y techo de la sala (14 × 12 ft) y la cocina, color blanco hueso. Algunas grietas finas en el drywall.",
+    loc:"Austin, TX", g:["Preparación","Pintura","Cierre"],
+    it:["Compuesto para juntas, 4.5 gal","Kit de lija + cinta de pintor","Plástico protector 9 × 12 ft","Protección, lijado y reparación de grietas","Pintura interior satinada, 5 gal","Primer para drywall, 5 gal","Kit de rodillo 9 in, bandeja y brocha","Paredes y techo, 2 manos","Limpieza final y retiro de escombros"],
+    scope:"Preparación, reparación de grietas y pintura de paredes y techo (≈ 840 sq ft) en sala y cocina, dos manos, acabado satinado.",
+    as:["Techos de 9 ft","Sin filtraciones activas","El cliente mueve los muebles"], ex:["Puertas y molduras","Reparación de yeso suelto"],
+    crew:"1 pintor + 1 ayudante", conf:"media", up:["Pintar 2 puertas interiores","Pared de acento"] },
+  pt:{ name:"Pintura de sala e cozinha", desc:"Repintar paredes e teto da sala (14 × 12 ft) e da cozinha, cor branco gelo. Algumas trincas finas no drywall.",
+    loc:"Austin, TX", g:["Preparação","Pintura","Encerramento"],
+    it:["Massa para drywall, 4,5 gal","Kit de lixa + fita crepe","Lona plástica 9 × 12 ft","Proteção, lixamento e correção de trincas","Tinta acetinada para interiores, 5 gal","Primer para drywall, 5 gal","Kit rolo 9 in, bandeja e trincha","Paredes e teto, 2 demãos","Limpeza final e descarte de entulho"],
+    scope:"Preparação, correção de trincas e pintura de paredes e teto (≈ 840 sq ft) na sala e cozinha, duas demãos, acabamento acetinado.",
+    as:["Pé-direito de 9 ft","Sem infiltração ativa","Cliente afasta os móveis"], ex:["Portas e guarnições","Reparo de reboco solto"],
+    crew:"1 pintor + 1 ajudante", conf:"média", up:["Pintar 2 portas internas","Parede de destaque"] }
 };
+function buildExample(){
+  const x = EX_TEXT[lang()];
+  const it = (k, i, qty, unit, unitPrice) => ({ kind:k, name:x.it[i], qty, unit, unitPrice, note:"" });
+  return { id:"example", example:true, currency:"USD", name:x.name, createdAt:Date.now(), updatedAt:Date.now(), description:x.desc, location:x.loc, thumbs:[],
+    adj:{ contingency:10, markup:20, tax:0 },
+    estimate:{ scope:x.scope, groups:[
+      { name:x.g[0], items:[ it("material",0,1,"bucket",18.98), it("material",1,1,"kit",24), it("material",2,2,"ea",6.48), it("labor",3,8,"hr",65) ] },
+      { name:x.g[1], items:[ it("material",4,2,"bucket",219), it("material",5,1,"bucket",129), it("material",6,1,"kit",34.97), it("labor",7,840,"sq ft",1.85) ] },
+      { name:x.g[2], items:[ it("other",8,1,"lot",150) ] } ],
+      assumptions:x.as, exclusions:x.ex, durationDays:4, crew:x.crew, confidence:x.conf, rangePct:12,
+      upsells:[ { name:x.up[0], price:320 }, { name:x.up[1], price:450 } ] } };
+}
 
 /* ---------- state ---------- */
 const state = {
-  tab:"home", route:{name:"home"}, settings:{...DEFAULT_SETTINGS}, pricebook:[], projects:[],
+  tab:"home", route:{ name:"home" }, settings:{ ...DEFAULT_SETTINGS }, pricebook:[], projects:[],
   loaded:false, storeMode:"local", sample:null, imgLimits:null,
-  draft:null,           // new-estimate wizard
-  editing:null,         // {gi,ii} item being edited
-  confirmDelete:false, busy:null, clientMsg:null,
+  draft:null, editing:null, confirmDelete:false, busy:null, clientMsg:null, keyStatus:null,
 };
+try{ const l = localStorage.getItem("truecost.lang"); if(STR[l]) state.settings.lang = l; }catch{}
 
-/* ---------- storage: this browser (localStorage), with JSON backup ---------- */
+/* ---------- storage: Claude account (db) inside Claude, else this browser ---------- */
 const LS_KEY = "truecost";
 const Store = {
-  readAll(){ try{ return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); }catch{ return {}; } },
-  writeAll(all){
-    try{ localStorage.setItem(LS_KEY, JSON.stringify(all)); }
-    catch(e){ toast(e?.name === "QuotaExceededError" ? "Armazenamento do navegador cheio. Exporte um backup e exclua projetos antigos." : "Não foi possível salvar agora."); }
+  db:null, uid:null, chains:{},
+  async init(){
+    if(!IN_CLAUDE) return;
+    const timeout = new Promise(r => setTimeout(() => r([null, null]), 10000));
+    try{
+      const [db, user] = await Promise.race([Promise.all([window.claude.use("db"), window.claude.use("user")]), timeout]);
+      const id = user ? await user.id() : null;
+      if(db && id){ this.db = db; this.uid = id; state.storeMode = "db"; }
+    }catch{}
   },
-  async loadAll(){ return this.readAll(); },
-  put(id, data){ const all = this.readAll(); all[id] = data; this.writeAll(all); },
-  del(id){ const all = this.readAll(); delete all[id]; this.writeAll(all); }
+  col(){ return this.db.collection("data/users/" + this.uid); },
+  readLocal(){ try{ return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); }catch{ return {}; } },
+  writeLocal(all){
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(all)); }
+    catch(e){ toast(e?.name === "QuotaExceededError" ? t("storageFull") : t("saveFail")); }
+  },
+  async loadAll(){
+    if(!this.db) return this.readLocal();
+    const snap = await this.col().get(), out = {};
+    snap.docs.forEach(d => { if(d.exists) out[d.id] = d.data(); });
+    return out;
+  },
+  put(id, data){
+    const run = async () => {
+      if(this.db) return this.col().doc(id).set(clone(data));
+      const all = this.readLocal(); all[id] = data; this.writeLocal(all);
+    };
+    this.chains[id] = (this.chains[id] || Promise.resolve()).then(run).catch(e => { console.warn(e); toast(e?.code === "quota_exceeded" ? t("storageFull") : t("saveFail")); });
+    return this.chains[id];
+  },
+  del(id){
+    const run = async () => {
+      if(this.db) return this.col().doc(id).delete();
+      const all = this.readLocal(); delete all[id]; this.writeLocal(all);
+    };
+    this.chains[id] = (this.chains[id] || Promise.resolve()).then(run).catch(console.warn);
+    return this.chains[id];
+  }
 };
 const saveTimers = {};
 function saveProject(p, now = false){
+  if(p.example) return;
   p.updatedAt = Date.now();
   clearTimeout(saveTimers[p.id]);
   const go = () => Store.put("p_" + p.id, p);
   if(now) return go();
   saveTimers[p.id] = setTimeout(go, 700);
 }
-const saveSettings = () => Store.put("settings", state.settings);
+let settingsT;
+const saveSettings = () => { clearTimeout(settingsT); settingsT = setTimeout(() => Store.put("settings", state.settings), 500); };
 const savePricebook = () => Store.put("pricebook", { items: state.pricebook });
 
-/* ---------- AI: Claude API called from the browser with the user's own key ---------- */
+/* ---------- AI ----------
+   Inside Claude: the artifact's `sample` capability (viewer's own Claude account).
+   On the web: the Claude API from the browser with the user's own key (official SDK). */
 const SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.135.0/+esm";
 const MODEL = "claude-opus-5-5";
 const EFFORT = { quick:"low", default:"medium", complex:"high" };
 const KEY_LS = "truecost.apikey";
 const getKey = () => { try{ return localStorage.getItem(KEY_LS) || ""; }catch{ return ""; } };
 let sdkPromise = null;
-const loadSDK = () => (sdkPromise ||= import(SDK_URL).then(m => m.default).catch(e => { sdkPromise = null; throw { code:"sdk_load" }; }));
+const loadSDK = () => (sdkPromise ||= import(SDK_URL).then(m => m.default).catch(() => { sdkPromise = null; throw { code:"sdk_load" }; }));
 
 async function toImageBlock(blob){
   const data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.onerror = rej; r.readAsDataURL(blob); });
@@ -313,8 +604,7 @@ function mapErr(Anthropic, e){
   if(e instanceof Anthropic.InternalServerError) return { code:"overloaded" };
   return { code:"upstream_error", message: e?.message };
 }
-/* Same call shape the rest of the app uses: ask(prompt, {images, onText, signal, modelTier}) -> {text}; ask.json(...) -> value */
-async function ask(prompt, opts = {}){
+async function apiAsk(prompt, opts = {}){
   const apiKey = getKey(); if(!apiKey) throw { code:"no_key" };
   const Anthropic = await loadSDK();
   const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
@@ -348,108 +638,117 @@ function parseJSON(text){
   const tries = [text, (text.match(/```(?:json)?\s*([\s\S]*?)```/) || [])[1]];
   const a = text.search(/[\[{]/), b = Math.max(text.lastIndexOf("}"), text.lastIndexOf("]"));
   if(a > -1 && b > a) tries.push(text.slice(a, b + 1));
-  for(const t of tries){ if(!t) continue; try{ return JSON.parse(t); }catch{} }
+  for(const s of tries){ if(!s) continue; try{ return JSON.parse(s); }catch{} }
   throw { code:"invalid_json", text };
 }
-ask.json = async (prompt, opts) => {
-  const { text, truncated } = await ask(prompt + "\n\nResponda apenas com o JSON, sem texto antes ou depois.", opts);
+apiAsk.json = async (prompt, opts) => {
+  const { text, truncated } = await apiAsk(prompt + "\n\nReply with the JSON only, no text before or after it.", opts);
   if(truncated) throw { code:"invalid_json", text };
   return parseJSON(text);
 };
-function initAI(){ state.sample = getKey() ? ask : null; state.imgLimits = { maxCount: 6 }; }
-const AI_ERR = {
-  no_key:"Cadastre sua chave da API em Ajustes para usar a IA.", bad_key:"Chave da API inválida ou sem permissão. Confira em Ajustes.",
-  rate_limited:"Limite de uso da API atingido. Aguarde um pouco ou verifique créditos no console da Anthropic.",
-  overloaded:"A API está sobrecarregada agora. Tente de novo em instantes.", network:"Sem conexão com a API. Verifique a internet.",
-  sdk_load:"Não consegui carregar o conector da IA. Verifique a internet.", bad_request:"A API recusou o pedido. Tente com menos fotos ou uma descrição menor.",
-  invalid_json:"A resposta veio incompleta. Tente de novo.", empty_completion:"A IA não respondeu. Tente de novo.",
-  refused:"O pedido foi recusado. Reformule a descrição.", cancelled:"Cancelado."
-};
-const aiErr = e => AI_ERR[e?.code] || "Falha ao falar com a IA. Tente de novo.";
+async function initAI(){
+  if(!IN_CLAUDE){ state.sample = getKey() ? apiAsk : null; state.imgLimits = { maxCount: 6 }; return; }
+  try{
+    const s = await window.claude.use("sample");
+    state.sample = s;
+    if(s){ const lim = await s.limits().catch(() => null); state.imgLimits = lim?.images || null; }
+  }catch{}
+  render();
+}
+const aiErr = e => (STR[lang()].err[e?.code]) || t("err").fallback || STR.en.err.fallback;
+
+const unitsBlock = () => state.settings.units === "metric"
+  ? { sys:"metric: m, cm, m², linear m, L, kg", scale:"standard door 2.10 × 0.80 m; outlet ~0.30 m above the floor; light switch ~1.10 m; countertop ~0.90 m; residential ceiling ~2.6–2.8 m; tiles and boards of known size",
+      ex:'{"label":"Wall area","value":32.5,"unit":"m²","basis":"estimated from the 2.10 m door"}', units:"ea|m²|m|hr|L|bag|lot|day" }
+  : { sys:"US customary/imperial: ft, in, sq ft, linear ft (LF), gal, lb", scale:"standard interior door 6'8\" × 30–36\"; outlets ~12–16 in above the floor; light switches ~48 in; countertops 36 in; base cabinets 34.5 in; wall cabinets typically 30–42 in; ceilings usually 8–9 ft; drywall sheets 4 × 8 ft; tiles and boards of known size",
+      ex:'{"label":"Wall area","value":350,"unit":"sq ft","basis":"estimated from the standard 6\'8\\" door"}', units:"ea|sq ft|LF|hr|gal|bag|lot|day" };
 
 function ctxBlock(){
-  const s = state.settings;
+  const s = state.settings, u = unitsBlock();
   const pb = state.pricebook.slice(0, 120).map(p => `- ${p.name} | ${p.unit} | ${p.price}`).join("\n");
-  return `CONTEXTO DO USUÁRIO
-- Região/cidade da obra: ${s.region || "não informada"}
-- Moeda: ${s.currency}. Sistema de medidas: ${s.units}.
-- Valor da hora de mão de obra própria: ${s.laborRate} ${s.currency}/h (use como referência para itens de mão de obra cobrados por hora).
-${pb ? `- TABELA DE PREÇOS PRÓPRIA (nome | unidade | preço). Quando um item corresponder, use EXATAMENTE este preço:\n${pb}` : "- Sem tabela de preços própria: use preços de varejo atuais típicos da região."}`;
+  return `USER CONTEXT
+- Pricing region: ${s.region || "United States (use typical national pricing)"}
+- Currency: ${s.currency}. Measurement system: ${u.sys}. Use only these units.
+- The user's own hourly labor rate: ${s.laborRate} ${s.currency}/hr (use it for labor billed by the hour).
+${pb ? `- USER'S OWN PRICE LIST (name | unit | price). When an item matches, use EXACTLY this price:\n${pb}` : "- No personal price list: use typical current retail/supplier prices for the region (big-box stores and trade suppliers)."}
+- Write every text field in ${LANG_NAME[lang()]}.`;
 }
 
-const ANALYZE_PROMPT = (d) => `Você é um orçamentista sênior de obras e reformas. Vai receber ${d.nPhotos ? d.nPhotos + " foto(s) do local e " : ""}uma descrição do serviço.
-Sua tarefa agora é só ENTENDER o projeto e listar o que falta saber antes de orçar.
+const ANALYZE_PROMPT = d => {
+  const u = unitsBlock();
+  return `You are a senior construction and remodeling estimator. You will receive ${d.nPhotos ? d.nPhotos + " photo(s) of the site and " : ""}a description of the work.
+Your job right now is only to UNDERSTAND the project and list what is still missing before pricing it.
 
 ${ctxBlock()}
 
-DESCRIÇÃO DO SERVIÇO (do usuário):
-"""${d.description || "(sem descrição, use as fotos)"}"""
-Local informado: ${d.location || state.settings.region}
+WORK DESCRIPTION (from the user):
+"""${d.description || "(no description, rely on the photos)"}"""
+Job location: ${d.location || state.settings.region || "United States"}
 
-Como analisar:
-1. Identifique o tipo de projeto e os ofícios envolvidos (ex.: demolição, alvenaria, elétrica, hidráulica, pintura, piso, marcenaria, gesso).
-2. Observe nas fotos o estado atual, materiais existentes e possíveis complicações (umidade, trincas, fiação aparente, desnível).
-3. Estime medidas usando referências de escala visíveis: porta padrão 2,10 × 0,80 m, tomada a ~0,30 m do piso, interruptor a ~1,10 m, bancada a ~0,90 m, azulejos e pisos de formato conhecido, pé-direito residencial ~2,60–2,80 m. Diga qual referência usou.
-4. Liste perguntas APENAS se a resposta mudar o preço de forma relevante (padrão de acabamento, quem fornece material, medidas que não dá para ver, remoção do existente). Máximo 5. Cada pergunta com 2 a 4 opções curtas.
+How to analyze:
+1. Identify the project type and trades involved (demo, framing, drywall, electrical, plumbing, painting, flooring, tile, cabinetry, roofing...).
+2. From the photos, note the current condition, existing materials and anything that adds cost (water damage, cracks, exposed wiring, uneven floors, code issues, access).
+3. Estimate dimensions from visible scale references: ${u.scale}. State which reference you used.
+4. Ask questions ONLY when the answer changes the price materially (finish level, who supplies materials, dimensions you can't see, removal of existing work, permits). At most 5. Each with 2 to 4 short options.
 
-Responda SOMENTE com JSON neste formato:
-{"title":"nome curto do projeto","projectType":"...","trades":["..."],"summary":"2-3 frases sobre o que será feito",
-"observations":["o que você viu nas fotos que afeta custo"],
-"measurements":[{"label":"Área de parede","value":32.5,"unit":"m²","basis":"estimado pela porta de 2,10 m"}],
-"questions":[{"id":"q1","question":"...","options":["...","..."]}]}
-Escreva tudo em português do Brasil.`;
+Reply ONLY with JSON in this shape:
+{"title":"short project name","projectType":"...","trades":["..."],"summary":"2-3 sentences on what will be done",
+"observations":["what you saw that affects cost"],
+"measurements":[${u.ex}],
+"questions":[{"id":"q1","question":"...","options":["...","..."]}]}`;
+};
 
-function estimateSchema(){ return `{"title":"...","scope":"resumo do escopo em 1-2 frases",
-"groups":[{"name":"etapa ou ofício","items":[{"kind":"material|labor|other","name":"descrição específica (marca/especificação quando útil)","qty":2,"unit":"un|m²|m|h|lata|saco|vb|dia","unitPrice":0,"note":"opcional, curta"}]}],
-"assumptions":["premissas adotadas"],"exclusions":["o que não está incluso"],
-"durationDays":3,"crew":"equipe sugerida","confidence":"alta|média|baixa","rangePct":15,
-"upsells":[{"name":"serviço adicional opcional que faz sentido","price":0}]}`; }
+const estimateSchema = () => `{"title":"...","scope":"1-2 sentence scope summary",
+"groups":[{"name":"phase or trade","items":[{"kind":"material|labor|other","name":"specific description (brand/spec when useful)","qty":2,"unit":"${unitsBlock().units}","unitPrice":0,"note":"optional, short"}]}],
+"assumptions":["assumptions made"],"exclusions":["what is not included"],
+"durationDays":3,"crew":"suggested crew","confidence":"high|medium|low (in the output language)","rangePct":15,
+"upsells":[{"name":"optional add-on that makes sense","price":0}]}`;
 
-const ESTIMATE_RULES = `Regras do orçamento:
-- Divida por etapas/ofícios na ordem de execução. Em cada etapa, liste materiais (kind "material"), mão de obra (kind "labor") e outros custos (kind "other": caçamba, frete, aluguel de equipamento, taxa de descarte).
-- Quantidades realistas: some perdas/sobras usuais (piso +10%, tinta pelo rendimento por demão, argamassa pelo consumo/m²). Arredonde para embalagens vendidas.
-- Preços unitários em ${"${CUR}"}, valores de mercado atuais da região, sem margem de lucro (a margem é aplicada depois pelo app).
-- Mão de obra: por hora (usando o valor/h informado) ou por m²/ponto quando for o costume do ofício.
-- NÃO inclua lucro, imposto nem contingência como itens; o app calcula.
-- rangePct = incerteza do total em % (5 a 40) conforme a qualidade das informações.
-- 0 a 3 upsells relevantes. Português do Brasil.`;
+const ESTIMATE_RULES = () => `Estimate rules:
+- Split into phases/trades in the order the work happens. In each phase list materials (kind "material"), labor (kind "labor") and other costs (kind "other": dumpster, delivery, equipment rental, disposal fees, permits).
+- Realistic quantities: include usual waste/overage (flooring +10%, tile +10–15%, paint by coverage per coat, mortar/thinset by coverage per sq ft). Round up to the package sizes stores actually sell.
+- Unit prices in ${state.settings.currency}, current market prices for the region, WITHOUT profit margin (the app applies overhead & profit afterwards).
+- Labor: by the hour (using the given hourly rate) or per sq ft / per fixture when that is how the trade usually prices it.
+- Do NOT add profit, overhead, sales tax or contingency as line items; the app calculates them.
+- rangePct = uncertainty of the total in % (5 to 40) depending on how good the information is.
+- 0 to 3 relevant upsells.`;
 
-const ESTIMATE_PROMPT = (p, d) => `Você é um orçamentista sênior de obras e reformas. Monte um orçamento detalhado, item a item.
+const ESTIMATE_PROMPT = (p, d) => `You are a senior construction and remodeling estimator. Build a detailed, line-item estimate.
 
 ${ctxBlock()}
 
-PROJETO
-Descrição do usuário: """${p.description}"""
-Local: ${p.location}
-Análise inicial: ${JSON.stringify({title:p.analysis?.title, projectType:p.analysis?.projectType, trades:p.analysis?.trades, summary:p.analysis?.summary, observations:p.analysis?.observations})}
-Medidas (confirmadas ou ajustadas pelo usuário): ${JSON.stringify(p.analysis?.measurements || [])}
-Respostas do usuário: ${JSON.stringify(d.answers)}
-${d.nPhotos ? `As ${d.nPhotos} foto(s) anexadas mostram o local.` : ""}
+PROJECT
+User description: """${p.description}"""
+Location: ${p.location || state.settings.region || "United States"}
+Initial analysis: ${JSON.stringify({ title:p.analysis?.title, projectType:p.analysis?.projectType, trades:p.analysis?.trades, summary:p.analysis?.summary, observations:p.analysis?.observations })}
+Measurements (confirmed or corrected by the user): ${JSON.stringify(p.analysis?.measurements || [])}
+User answers: ${JSON.stringify(d.answers)}
+${d.nPhotos ? `The ${d.nPhotos} attached photo(s) show the site.` : ""}
 
-${ESTIMATE_RULES.replace("${CUR}", state.settings.currency)}
+${ESTIMATE_RULES()}
 
-Responda SOMENTE com JSON neste formato:
+Reply ONLY with JSON in this shape:
 ${estimateSchema()}`;
 
-const REFINE_PROMPT = (p, instr) => `Você é um orçamentista sênior. Ajuste o orçamento abaixo conforme o pedido do usuário e devolva o orçamento COMPLETO atualizado.
+const REFINE_PROMPT = (p, instr) => `You are a senior construction estimator. Update the estimate below as the user asks and return the COMPLETE updated estimate.
 
 ${ctxBlock()}
 
-Projeto: ${p.name} — ${p.description}
-ORÇAMENTO ATUAL (JSON):
+Project: ${p.name} — ${p.description}
+CURRENT ESTIMATE (JSON, prices in ${p.currency || state.settings.currency}):
 ${JSON.stringify(p.estimate)}
 
-PEDIDO DO USUÁRIO: """${instr}"""
+USER REQUEST: """${instr}"""
 
-Mantenha os itens que o pedido não afeta exatamente como estão (mesmos preços e quantidades). ${ESTIMATE_RULES.replace("${CUR}", state.settings.currency)}
-Responda SOMENTE com JSON no formato abaixo, acrescentando "changeNote" (1 frase dizendo o que mudou):
+Keep items the request doesn't affect exactly as they are (same prices and quantities). Keep prices in ${p.currency || state.settings.currency}. ${ESTIMATE_RULES()}
+Reply ONLY with JSON in the shape below, adding "changeNote" (1 sentence on what changed):
 ${estimateSchema()}`;
 
 /* ---------- totals ---------- */
 function totals(p){
-  const e = p.estimate || {groups:[]};
-  const by = {material:0, labor:0, other:0};
-  e.groups.forEach(g => g.items.forEach(it => { by[KIND[it.kind] ? it.kind : "other"] += num(it.qty) * num(it.unitPrice); }));
+  const e = p.estimate || { groups:[] };
+  const by = { material:0, labor:0, other:0 };
+  e.groups.forEach(g => g.items.forEach(it => { by[KIND_COLOR[it.kind] ? it.kind : "other"] += num(it.qty) * num(it.unitPrice); }));
   const sub = by.material + by.labor + by.other;
   const a = p.adj || state.settings;
   const cont = sub * num(a.contingency) / 100;
@@ -460,23 +759,25 @@ function totals(p){
   return { by, sub, cont, mk, tax, total, low: total * (1 - r), high: total * (1 + r) };
 }
 const groupSum = g => g.items.reduce((s, it) => s + num(it.qty) * num(it.unitPrice), 0);
+const pm = (p, v) => money(v, p.currency);
 
 function normalizeEstimate(e){
-  if(!e || !Array.isArray(e.groups)) throw {code:"invalid_json"};
+  if(!e || !Array.isArray(e.groups)) throw { code:"invalid_json" };
+  const n = v => typeof v === "number" ? v : parseFloat(String(v ?? "").replace(/[^0-9.\-]/g, "")) || 0;
   e.groups = e.groups.filter(g => g && Array.isArray(g.items)).map(g => ({
-    name:String(g.name || "Itens"),
-    items:g.items.map(it => ({ kind: KIND[it.kind] ? it.kind : "other", name:String(it.name || "Item"), qty:num(it.qty) || 1, unit:String(it.unit || "un"), unitPrice:num(it.unitPrice), note: it.note ? String(it.note) : "" }))
+    name:String(g.name || t("item")),
+    items:g.items.map(it => ({ kind: KIND_COLOR[it.kind] ? it.kind : "other", name:String(it.name || t("item")), qty:n(it.qty) || 1, unit:String(it.unit || "ea"), unitPrice:n(it.unitPrice), note: it.note ? String(it.note) : "" }))
   }));
   ["assumptions","exclusions"].forEach(k => e[k] = Array.isArray(e[k]) ? e[k].map(String) : []);
-  e.upsells = Array.isArray(e.upsells) ? e.upsells.map(u => ({name:String(u.name||""), price:num(u.price)})).filter(u => u.name) : [];
-  e.rangePct = Math.min(40, Math.max(5, num(e.rangePct) || 15));
+  e.upsells = Array.isArray(e.upsells) ? e.upsells.map(u => ({ name:String(u.name || ""), price:n(u.price) })).filter(u => u.name) : [];
+  e.rangePct = Math.min(40, Math.max(5, n(e.rangePct) || 15));
   return e;
 }
 
 /* ---------- images ---------- */
-function loadImg(file){ return new Promise((res, rej) => { const u = URL.createObjectURL(file); const im = new Image(); im.onload = () => res({im, u}); im.onerror = rej; im.src = u; }); }
+function loadImg(file){ return new Promise((res, rej) => { const u = URL.createObjectURL(file); const im = new Image(); im.onload = () => res({ im, u }); im.onerror = rej; im.src = u; }); }
 async function shrink(file, max, q){
-  const {im, u} = await loadImg(file);
+  const { im, u } = await loadImg(file);
   const k = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight));
   const c = document.createElement("canvas"); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
   c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
@@ -488,13 +789,13 @@ async function addFiles(files){
   const d = state.draft; if(!d) return;
   const max = state.imgLimits?.maxCount || 6;
   for(const f of [...files]){
-    if(d.photos.length >= max){ toast(`Máximo de ${max} fotos por orçamento.`); break; }
+    if(d.photos.length >= max){ toast(t("maxPhotos", { n:max })); break; }
     if(!/^image\//.test(f.type)) continue;
     try{
-      const big = await shrink(f, 1600, .85);   // sent to Claude
+      const big = await shrink(f, 1600, .85);   // sent to the AI
       const small = await shrink(f, 200, .6);   // stored with the project
       d.photos.push({ id:uid(), blob:big.blob, url:URL.createObjectURL(big.blob), thumb:small.dataUrl });
-    }catch{ toast("Não consegui abrir essa imagem."); }
+    }catch{ toast(t("badImage")); }
   }
   render();
 }
@@ -509,249 +810,256 @@ function go(route){
   render(); window.scrollTo(0, 0);
 }
 function newDraft(){ state.draft = { step:1, photos:[], description:"", location:state.settings.region, project:null, answers:{}, custom:{} }; }
-const getProject = id => id === "exemplo" ? state.exampleCopy : state.projects.find(p => p.id === id);
+const getProject = id => id === "example" ? state.exampleCopy : state.projects.find(p => p.id === id);
 
 /* ---------- render ---------- */
 function render(){
+  document.documentElement.lang = LOCALE[lang()];
+  $("#tabnav").setAttribute("aria-label", t("nav"));
   renderTop(); renderTabs();
-  const v = $("#view");
-  const r = state.route;
-  if(!state.loaded){ v.innerHTML = `<div class="card pad think"><span class="eyebrow">Carregando seus orçamentos</span><div class="scan"></div></div>`; return; }
+  const v = $("#view"), r = state.route;
+  if(!state.loaded){ v.innerHTML = `<div class="card pad think"><span class="eyebrow">${t("loading")}</span><div class="scan"></div></div>`; return; }
   v.innerHTML = r.name === "home" ? vHome() : r.name === "new" ? vNew() : r.name === "project" ? vProject(getProject(r.id)) : r.name === "prices" ? vPrices() : vSettings();
   const st = $("#stream"); if(st) st.scrollTop = st.scrollHeight;
 }
+function langSwitch(){
+  return `<div class="langsw" role="group" aria-label="Language">${Object.keys(LANGS).map(k => `<button data-act="lang" data-k="${k}" aria-pressed="${lang() === k}" lang="${LOCALE[k]}">${LANGS[k]}</button>`).join("")}</div>`;
+}
 function renderTop(){
-  const r = state.route, t = $("#topbar");
+  const r = state.route, el = $("#topbar");
   if(r.name === "project" || (r.name === "new" && state.draft?.step > 1)){
-    const ttl = r.name === "project" ? (getProject(r.id)?.name || "Orçamento") : "Novo orçamento";
-    t.innerHTML = `<button class="back" data-act="back">${I.back}<span class="vh">Voltar</span></button><span class="ttl">${esc(ttl)}</span>`;
+    const ttl = r.name === "project" ? (getProject(r.id)?.name || t("quoteT")) : t("newProject");
+    el.innerHTML = `<button class="back" data-act="back">${I.back}<span class="vh">${t("back")}</span></button><span class="ttl">${esc(ttl)}</span>${langSwitch()}`;
   } else {
-    t.innerHTML = `<span class="brand"><i></i>TrueCost</span><span class="store-pill">${state.storeMode === "db" ? "Salvo na sua conta" : "Salvo neste aparelho"}</span>`;
+    el.innerHTML = `<span class="brand"><i></i>TrueCost</span>${langSwitch()}`;
   }
 }
 function renderTabs(){
   const cur = state.tab;
-  const b = (k, ic, lb, cls="") => `<button class="tab ${cls}" data-act="tab" data-k="${k}" ${cur===k?'aria-current="page"':""}>${cls ? `<span class="dot">${ic}</span>` : ic}<span>${lb}</span></button>`;
-  $("#tabs").innerHTML = b("home", I.home, "Projetos") + b("new", I.cam, "Novo", "cam") + b("prices", I.tag, "Meus preços") + b("settings", I.gear, "Ajustes");
+  const b = (k, ic, lb, cls = "") => `<button class="tab ${cls}" data-act="tab" data-k="${k}" ${cur === k ? 'aria-current="page"' : ""}>${cls ? `<span class="dot">${ic}</span>` : ic}<span>${lb}</span></button>`;
+  $("#tabs").innerHTML = b("home", I.home, t("tabHome")) + b("new", I.cam, t("tabNew"), "cam") + b("prices", I.tag, t("tabPrices")) + b("settings", I.gear, t("tabSettings"));
 }
 
 function vHome(){
   const list = [...state.projects].sort((a, b) => b.updatedAt - a.updatedAt);
-  const rows = (list.length ? list : [EXAMPLE]).map(p => {
-    const t = p.estimate ? totals(p) : null;
-    const th = p.thumbs?.[0];
+  if(!list.length) state.exampleCopy = buildExample();
+  const rows = (list.length ? list : [state.exampleCopy]).map(p => {
+    const tt = p.estimate ? totals(p) : null, th = p.thumbs?.[0];
     return `<button class="card pitem" data-act="open" data-id="${esc(p.id)}">
       <span class="thumb" style="${th ? `background-image:url('${th}')` : ""}">${th ? "" : I.img.replace("<svg", '<svg width="24" height="24"')}</span>
       <span class="grow"><span class="nm" style="display:block">${esc(p.name)}</span>
-        <span class="small muted">${p.example ? '<span class="badge ex">Exemplo</span> ' : ""}${fmtDate(p.updatedAt)}${p.estimate ? "" : " · aguardando perguntas"}</span></span>
-      <span class="tot">${t ? money(t.total) : "—"}</span></button>`;
+        <span class="small muted">${p.example ? `<span class="badge ex">${t("example")}</span> ` : ""}${fmtDate(p.updatedAt)}${p.estimate ? "" : t("waitingQ")}</span></span>
+      <span class="tot">${tt ? pm(p, tt.total) : "—"}</span></button>`;
   }).join("");
   return `
   <section class="hero"><span class="ruler" aria-hidden="true"></span>
-    <h1>Foto da obra.<br><b>Custo real</b> em minutos.</h1>
-    <p>Tire fotos do ambiente, descreva o serviço e receba materiais, mão de obra e total, item por item, com os seus preços.</p>
-    <button class="btn primary" data-act="tab" data-k="new">${I.cam} Novo orçamento</button>
+    <h1>${t("heroA")}<br><b>${t("heroB")}</b> ${t("heroC")}</h1>
+    <p>${t("heroP")}</p>
+    <button class="btn primary" data-act="tab" data-k="new">${I.cam} ${t("newEstimate")}</button>
   </section>
-  <div class="row"><h2 style="font-size:20px" class="grow">Projetos</h2><span class="small muted">${list.length ? list.length + (list.length === 1 ? " orçamento" : " orçamentos") : ""}</span></div>
+  <div class="row"><h2 style="font-size:20px" class="grow">${t("projects")}</h2><span class="small muted">${list.length ? (list.length === 1 ? t("oneEstimate") : t("nEstimates", { n:list.length })) : ""}</span></div>
   <div class="plist">${rows}</div>
-  ${list.length ? "" : `<p class="small muted" style="margin:0">O projeto acima é um exemplo para você ver o resultado. Seus orçamentos aparecem aqui assim que você criar o primeiro.</p>`}`;
+  ${list.length ? "" : `<p class="small muted" style="margin:0">${t("exampleNote")}</p>`}`;
 }
 
 function aiBanner(){
   if(state.sample) return "";
-  return `<div class="note stack" style="gap:8px">Para a IA funcionar, cadastre sua chave da API da Anthropic. Ela fica salva só neste aparelho.<button class="btn" data-act="tab" data-k="settings" style="align-self:flex-start">Cadastrar chave em Ajustes</button></div>`;
+  if(IN_CLAUDE) return `<div class="note">${t("aiOffClaude")}</div>`;
+  return `<div class="note stack" style="gap:8px">${t("aiOffKey")}<button class="btn" data-act="tab" data-k="settings" style="align-self:flex-start">${t("addKey")}</button></div>`;
 }
 
 function vNew(){
   const d = state.draft;
-  const steps = `<div class="steps" aria-label="Etapa ${d.step} de 3">${[1,2,3].map(i => `<span class="${i <= d.step ? "on" : ""}"></span>`).join("")}</div>`;
+  const steps = `<div class="steps" aria-label="${t("step", { n:d.step })}">${[1,2,3].map(i => `<span class="${i <= d.step ? "on" : ""}"></span>`).join("")}</div>`;
   if(state.busy) return steps + vBusy();
   if(d.step === 1){
     const max = state.imgLimits?.maxCount || 6;
-    const ph = d.photos.map(p => `<div class="ph"><img src="${p.url}" alt="Foto do local"><button class="x" data-act="rmph" data-id="${p.id}" aria-label="Remover foto">×</button></div>`).join("");
+    const ph = d.photos.map(p => `<div class="ph"><img src="${p.url}" alt="${t("sitePhoto")}"><button class="x" data-act="rmph" data-id="${p.id}" aria-label="${t("removePhoto")}">×</button></div>`).join("");
     const canImg = !state.sample || !!state.imgLimits;
     return `${steps}
-    <div><span class="eyebrow">Etapa 1 · Fotos e descrição</span><h1 style="font-size:26px;margin-top:4px">O que vamos orçar?</h1></div>
+    <div><span class="eyebrow">${t("step1")}</span><h1 style="font-size:26px;margin-top:4px">${t("step1H")}</h1></div>
     ${aiBanner()}
     ${canImg ? `<div class="stack"><div class="photos">${ph}
-      ${d.photos.length < max ? `<button class="addph" data-act="cam">${I.cam}Câmera</button><button class="addph" data-act="gal">${I.img}Galeria</button>` : ""}</div>
-      <span class="small muted">Fotografe o ambiente inteiro e os detalhes que afetam o custo. Inclua uma porta ou tomada no quadro para dar escala. Até ${max} fotos.</span></div>`
-      : `<div class="note">Esta visualização não envia fotos para o Claude. Descreva o serviço com as medidas.</div>`}
-    <label class="f">Descrição do serviço
-      <textarea class="in" id="desc" placeholder="Ex.: trocar piso da cozinha por porcelanato 60×60, remover o antigo, cozinha de 3 × 4 m">${esc(d.description)}</textarea></label>
-    <label class="f">Local da obra<input class="in" id="loc" value="${esc(d.location)}" placeholder="Cidade, UF"></label>
-    <button class="btn primary big" data-act="analyze" ${(!d.photos.length && !d.description.trim()) || !state.sample ? "disabled" : ""}>${I.spark} Analisar com IA</button>`;
+      ${d.photos.length < max ? `<button class="addph" data-act="cam">${I.cam}${t("camera")}</button><button class="addph" data-act="gal">${I.img}${t("gallery")}</button>` : ""}</div>
+      <span class="small muted">${t("photoTip", { n:max })}</span></div>`
+      : `<div class="note">${t("noImg")}</div>`}
+    <label class="f">${t("descL")}
+      <textarea class="in" id="desc" placeholder="${esc(t("descPh"))}">${esc(d.description)}</textarea></label>
+    <label class="f">${t("locL")}<input class="in" id="loc" value="${esc(d.location)}" placeholder="${esc(t("locPh"))}"></label>
+    <button class="btn primary big" data-act="analyze" ${(!d.photos.length && !d.description.trim()) || !state.sample ? "disabled" : ""}>${I.spark} ${t("analyze")}</button>`;
   }
   if(d.step === 2){
     const a = d.project.analysis;
     const qs = (a.questions || []).map(q => `<div class="stack" style="gap:8px"><b style="font-weight:600">${esc(q.question)}</b>
       <div class="chips">${(q.options || []).map(o => `<button class="chip" data-act="ans" data-q="${esc(q.id)}" data-v="${esc(o)}" aria-pressed="${d.answers[q.id] === o}">${esc(o)}</button>`).join("")}</div>
-      <input class="in" data-act="anscustom" data-q="${esc(q.id)}" placeholder="Outra resposta (opcional)" value="${esc(d.custom[q.id] || "")}" style="padding:8px 10px;font-size:14px"></div>`).join("");
+      <input class="in" data-act="anscustom" data-q="${esc(q.id)}" placeholder="${esc(t("otherAnswer"))}" value="${esc(d.custom[q.id] || "")}" style="padding:8px 10px;font-size:14px"></div>`).join("");
     const ms = (a.measurements || []).map((m, i) => `<div class="meas"><span class="small">${esc(m.label)}${m.basis ? `<br><span class="muted" style="font-size:12px">${esc(m.basis)}</span>` : ""}</span>
-      <input class="in num" inputmode="decimal" data-act="meas" data-i="${i}" value="${esc(m.value)}" aria-label="${esc(m.label)}"><span class="small muted">${esc(m.unit)}</span></div>`).join("");
+      <input class="in num" inputmode="decimal" data-act="meas" data-i="${i}" value="${esc(fmtIn(m.value))}" aria-label="${esc(m.label)}"><span class="small muted">${esc(m.unit)}</span></div>`).join("");
     return `${steps}
-    <div><span class="eyebrow">Etapa 2 · Confirme os detalhes</span><h1 style="font-size:26px;margin-top:4px">${esc(a.title || "Projeto")}</h1>
+    <div><span class="eyebrow">${t("step2")}</span><h1 style="font-size:26px;margin-top:4px">${esc(a.title || t("project"))}</h1>
       <p class="muted" style="margin:6px 0 0">${esc(a.summary || "")}</p></div>
-    ${(a.trades || []).length ? `<div class="chips">${a.trades.map(t => `<span class="badge">${esc(t)}</span>`).join("")}</div>` : ""}
-    ${(a.observations || []).length ? `<div class="card pad stack" style="gap:6px"><span class="eyebrow">O que a IA viu</span><ul class="clean small">${a.observations.map(o => `<li>${esc(o)}</li>`).join("")}</ul></div>` : ""}
-    ${ms ? `<div class="card pad stack"><span class="eyebrow">Medidas estimadas · corrija se souber</span>${ms}</div>` : ""}
-    ${qs ? `<div class="card pad stack" style="gap:18px"><span class="eyebrow">Perguntas que mudam o preço</span>${qs}</div>` : ""}
-    <label class="f">Algo mais a considerar? (opcional)<textarea class="in" id="extra" style="min-height:60px" placeholder="Ex.: cliente já tem o piso; acesso só por escada">${esc(d.extra || "")}</textarea></label>
-    <button class="btn primary big" data-act="estimate">${I.spark} Gerar orçamento</button>`;
+    ${(a.trades || []).length ? `<div class="chips">${a.trades.map(x => `<span class="badge">${esc(x)}</span>`).join("")}</div>` : ""}
+    ${(a.observations || []).length ? `<div class="card pad stack" style="gap:6px"><span class="eyebrow">${t("aiSaw")}</span><ul class="clean small">${a.observations.map(o => `<li>${esc(o)}</li>`).join("")}</ul></div>` : ""}
+    ${ms ? `<div class="card pad stack"><span class="eyebrow">${t("measTitle")}</span>${ms}</div>` : ""}
+    ${qs ? `<div class="card pad stack" style="gap:18px"><span class="eyebrow">${t("qTitle")}</span>${qs}</div>` : ""}
+    <label class="f">${t("extraL")}<textarea class="in" id="extra" style="min-height:60px" placeholder="${esc(t("extraPh"))}">${esc(d.extra || "")}</textarea></label>
+    <button class="btn primary big" data-act="estimate">${I.spark} ${t("generate")}</button>`;
   }
   return steps;
 }
 function vBusy(){
   const b = state.busy;
-  return `<div class="card pad think"><span class="eyebrow">${esc(b.label)}</span><div class="scan"></div>
-    <span class="small muted">${b.hasText ? "Escrevendo o resultado…" : "Pensando. Com fotos, pode levar até um minuto."}</span>
+  return `<div class="card pad think"><span class="eyebrow">${esc(t(b.label))}</span><div class="scan"></div>
+    <span class="small muted">${b.hasText ? t("writing") : t("thinking")}</span>
     <div class="stream" id="stream">${esc(b.text || "")}</div>
-    <button class="btn" data-act="stop">Parar</button></div>`;
+    <button class="btn" data-act="stop">${t("stop")}</button></div>`;
 }
 
 function vProject(p){
-  if(!p) return `<div class="empty">Projeto não encontrado. <button class="btn ghost" data-act="tab" data-k="home">Voltar</button></div>`;
+  if(!p) return `<div class="empty">${t("notFound")} <button class="btn ghost" data-act="tab" data-k="home">${t("back")}</button></div>`;
   if(!p.estimate){
-    return `<div class="card pad stack"><b>Este projeto ainda não tem orçamento.</b><span class="muted small">A análise foi feita, mas as perguntas não foram respondidas.</span>
-      <button class="btn primary" data-act="resume" data-id="${esc(p.id)}">Continuar</button></div>${dangerZone(p)}`;
+    return `<div class="card pad stack"><b>${t("noEstimate")}</b><span class="muted small">${t("noEstimateSub")}</span>
+      <button class="btn primary" data-act="resume" data-id="${esc(p.id)}">${t("resume")}</button></div>${dangerZone(p)}`;
   }
-  const e = p.estimate, t = totals(p), a = p.adj || (p.adj = {contingency:state.settings.contingency, markup:state.settings.markup, tax:state.settings.tax});
-  const pct = v => t.sub ? (v / t.sub * 100).toFixed(1) : 0;
+  const e = p.estimate, tt = totals(p), a = p.adj || (p.adj = { contingency:state.settings.contingency, markup:state.settings.markup, tax:state.settings.tax });
+  const pct = v => tt.sub ? (v / tt.sub * 100).toFixed(1) : 0;
   if(state.busy) return vBusy();
   const groups = e.groups.map((g, gi) => {
-    const kinds = ["material","labor","other"].filter(k => g.items.some(it => it.kind === k));
-    const body = kinds.map(k => `<div class="kind">${KIND[k].label}</div>` + g.items.map((it, ii) => it.kind !== k ? "" : itemRow(p, it, gi, ii)).join("")).join("");
-    return `<section class="card grp"><div class="grp-h"><h3>${esc(g.name)}</h3><span class="num">${money(groupSum(g))}</span></div>${body}
-      <div style="padding:8px 12px;display:flex;gap:4px;flex-wrap:wrap"><button class="btn ghost small" data-act="additem" data-g="${gi}">${I.plus} Item</button>
-      ${state.pricebook.length ? `<button class="btn ghost small" data-act="addpb" data-g="${gi}">${I.tag} Da minha tabela</button>` : ""}</div></section>`;
+    const kinds = KINDS.filter(k => g.items.some(it => it.kind === k));
+    const body = kinds.map(k => `<div class="kind">${kindLabel(k)}</div>` + g.items.map((it, ii) => it.kind !== k ? "" : itemRow(p, it, gi, ii)).join("")).join("");
+    return `<section class="card grp"><div class="grp-h"><h3>${esc(g.name)}</h3><span class="num">${pm(p, groupSum(g))}</span></div>${body}
+      <div style="padding:8px 12px;display:flex;gap:4px;flex-wrap:wrap"><button class="btn ghost small" data-act="additem" data-g="${gi}">${I.plus} ${t("item")}</button>
+      ${state.pricebook.length ? `<button class="btn ghost small" data-act="addpb" data-g="${gi}">${I.tag} ${t("fromList")}</button>` : ""}</div></section>`;
   }).join("");
-  const th = (p.thumbs || []).map(u => `<div class="ph"><img src="${u}" alt="Foto do local"></div>`).join("");
+  const th = (p.thumbs || []).map(u => `<div class="ph"><img src="${u}" alt="${t("sitePhoto")}"></div>`).join("");
+  const adjRow = (id, k, label, val) => `<div class="r"><label class="grow" for="${id}">${label}</label><input class="in num" id="${id}" inputmode="decimal" data-act="adj" data-k="${k}" value="${esc(fmtIn(a[k]))}"><span class="small muted">%</span><span class="num">${pm(p, val)}</span></div>`;
   return `
-  ${p.example ? `<div class="note">Exemplo para mostrar como fica um orçamento. Alterações aqui não são salvas.</div>` : ""}
+  ${p.example ? `<div class="note">${t("exampleBanner")}</div>` : ""}
   <section class="card pad total">
-    <div class="row"><span class="eyebrow grow">Total estimado</span><span class="badge">confiança ${esc(e.confidence || "média")}</span></div>
-    <div class="big"><span class="hl">${money(t.total)}</span></div>
-    <span class="small muted num">faixa provável ${money(t.low)} – ${money(t.high)}</span>
-    <div class="bar" role="img" aria-label="Divisão de custos">${["material","labor","other"].map(k => `<i style="width:${pct(t.by[k])}%;background:${KIND[k].color}"></i>`).join("")}</div>
-    <div class="legend">${["material","labor","other"].map(k => `<span><b style="background:${KIND[k].color}"></b>${KIND[k].label} <span class="num">${money(t.by[k])}</span></span>`).join("")}</div>
+    <div class="row"><span class="eyebrow grow">${t("totalEst")}</span><span class="badge">${esc(t("confidence", { c:e.confidence || "—" }))}</span></div>
+    <div class="big"><span class="hl">${pm(p, tt.total)}</span></div>
+    <span class="small muted num">${t("range", { a:pm(p, tt.low), b:pm(p, tt.high) })}</span>
+    <div class="bar" role="img" aria-label="${t("split")}">${KINDS.map(k => `<i style="width:${pct(tt.by[k])}%;background:${KIND_COLOR[k]}"></i>`).join("")}</div>
+    <div class="legend">${KINDS.map(k => `<span><b style="background:${KIND_COLOR[k]}"></b>${kindLabel(k)} <span class="num">${pm(p, tt.by[k])}</span></span>`).join("")}</div>
   </section>
-  ${e.changeNote ? `<div class="note" style="border-color:var(--accent)">Última alteração: ${esc(e.changeNote)}</div>` : ""}
-  <section class="stack" style="gap:6px"><span class="eyebrow">Escopo</span><p style="margin:0">${esc(e.scope || p.description)}</p>
-    <span class="small muted">${e.durationDays ? `Prazo estimado: ${esc(e.durationDays)} dia(s)` : ""}${e.crew ? ` · Equipe: ${esc(e.crew)}` : ""}</span></section>
+  ${e.changeNote ? `<div class="note" style="border-color:var(--accent)">${esc(t("lastChange", { c:e.changeNote }))}</div>` : ""}
+  <section class="stack" style="gap:6px"><span class="eyebrow">${t("scope")}</span><p style="margin:0">${esc(e.scope || p.description)}</p>
+    <span class="small muted">${e.durationDays ? t("duration", { n:esc(e.durationDays) }) : ""}${e.crew ? esc(t("crew", { c:e.crew })) : ""}</span></section>
   ${th ? `<div class="photos">${th}</div>` : ""}
   ${groups}
-  <button class="btn" data-act="addgroup">${I.plus} Nova etapa</button>
+  <button class="btn" data-act="addgroup">${I.plus} ${t("newGroup")}</button>
   <section class="card pad adj">
-    <span class="eyebrow" style="margin-bottom:4px">Fechamento</span>
-    <div class="r"><span class="grow">Custo direto</span><span class="num">${money(t.sub)}</span></div>
-    <div class="r"><label class="grow" for="a-c">Contingência</label><input class="in num" id="a-c" inputmode="decimal" data-act="adj" data-k="contingency" value="${esc(a.contingency)}"><span class="small muted">%</span><span class="num">${money(t.cont)}</span></div>
-    <div class="r"><label class="grow" for="a-m">Margem / lucro</label><input class="in num" id="a-m" inputmode="decimal" data-act="adj" data-k="markup" value="${esc(a.markup)}"><span class="small muted">%</span><span class="num">${money(t.mk)}</span></div>
-    <div class="r"><label class="grow" for="a-t">Impostos</label><input class="in num" id="a-t" inputmode="decimal" data-act="adj" data-k="tax" value="${esc(a.tax)}"><span class="small muted">%</span><span class="num">${money(t.tax)}</span></div>
-    <div class="r tt"><span class="grow">Total</span><span class="num">${money(t.total)}</span></div>
+    <span class="eyebrow" style="margin-bottom:4px">${t("closing")}</span>
+    <div class="r"><span class="grow">${t("direct")}</span><span class="num">${pm(p, tt.sub)}</span></div>
+    ${adjRow("a-c", "contingency", t("contingency"), tt.cont)}
+    ${adjRow("a-m", "markup", t("markup"), tt.mk)}
+    ${adjRow("a-t", "tax", t("tax"), tt.tax)}
+    <div class="r tt"><span class="grow">${t("total")}</span><span class="num">${pm(p, tt.total)}</span></div>
   </section>
   ${(e.assumptions.length || e.exclusions.length) ? `<section class="grid2">
-    ${e.assumptions.length ? `<div class="stack" style="gap:6px"><span class="eyebrow">Premissas</span><ul class="clean small">${e.assumptions.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
-    ${e.exclusions.length ? `<div class="stack" style="gap:6px"><span class="eyebrow">Não incluso</span><ul class="clean small">${e.exclusions.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}</section>` : ""}
-  ${e.upsells.length ? `<section class="stack" style="gap:8px"><span class="eyebrow">Adicionais para oferecer</span>${e.upsells.map((u, i) => `<div class="card row" style="padding:10px 12px"><span class="grow small">${esc(u.name)}</span><span class="num small">${money(u.price)}</span><button class="btn ghost small" data-act="upsell" data-i="${i}">Incluir</button></div>`).join("")}</section>` : ""}
+    ${e.assumptions.length ? `<div class="stack" style="gap:6px"><span class="eyebrow">${t("assumptions")}</span><ul class="clean small">${e.assumptions.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
+    ${e.exclusions.length ? `<div class="stack" style="gap:6px"><span class="eyebrow">${t("exclusions")}</span><ul class="clean small">${e.exclusions.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}</section>` : ""}
+  ${e.upsells.length ? `<section class="stack" style="gap:8px"><span class="eyebrow">${t("upsellsT")}</span>${e.upsells.map((u, i) => `<div class="card row" style="padding:10px 12px"><span class="grow small">${esc(u.name)}</span><span class="num small">${pm(p, u.price)}</span><button class="btn ghost small" data-act="upsell" data-i="${i}">${t("include")}</button></div>`).join("")}</section>` : ""}
   <section class="card pad stack">
-    <span class="eyebrow">Ajustar com IA</span>
-    <div class="ask"><textarea class="in" id="refine" placeholder="Ex.: trocar para tinta econômica; incluir rodapé de 8 cm; a sala tem 5 × 4 m">${esc(state.refineDraft || "")}</textarea>
-      <button class="btn primary" data-act="refine" ${state.sample && !p.example ? "" : "disabled"} aria-label="Ajustar">${I.spark}</button></div>
-    ${!state.sample ? `<span class="small muted">Cadastre sua chave da API em Ajustes para usar.</span>` : p.example ? `<span class="small muted">Crie um orçamento seu para usar os ajustes por IA.</span>` : ""}
+    <span class="eyebrow">${t("refineT")}</span>
+    <div class="ask"><textarea class="in" id="refine" placeholder="${esc(t("refinePh"))}">${esc(state.refineDraft || "")}</textarea>
+      <button class="btn primary" data-act="refine" ${state.sample && !p.example ? "" : "disabled"} aria-label="${t("refineBtn")}">${I.spark}</button></div>
+    ${!state.sample ? `<span class="small muted">${t("refineNoAI")}</span>` : p.example ? `<span class="small muted">${t("refineEx")}</span>` : ""}
   </section>
   <section class="stack">
-    <span class="eyebrow">Enviar e exportar</span>
+    <span class="eyebrow">${t("shareT")}</span>
     <div class="actions">
-      <button class="btn" data-act="copytext">Copiar orçamento</button>
-      <button class="btn" data-act="clientmsg" ${state.sample ? "" : "disabled"}>Mensagem p/ cliente</button>
-      <button class="btn" data-act="exporthtml">Baixar orçamento</button>
-      <button class="btn" data-act="exportcsv">Baixar planilha</button>
+      <button class="btn" data-act="copytext">${t("copyEst")}</button>
+      <button class="btn" data-act="clientmsg" ${state.sample ? "" : "disabled"}>${t("clientMsg")}</button>
+      <button class="btn" data-act="exporthtml">${t("dlQuote")}</button>
+      <button class="btn" data-act="exportcsv">${t("dlCsv")}</button>
     </div>
-    ${state.clientMsg ? `<div class="card pad stack"><span class="eyebrow">Mensagem para WhatsApp/e-mail</span>${state.clientMsg.loading ? `<div class="scan"></div>` : `<div class="msgbox" id="msgbox">${esc(state.clientMsg.text)}</div><button class="btn" data-act="copymsg">Copiar mensagem</button>`}</div>` : ""}
+    ${state.clientMsg ? `<div class="card pad stack"><span class="eyebrow">${t("msgT")}</span>${state.clientMsg.loading ? `<div class="scan"></div>` : `<div class="msgbox" id="msgbox">${esc(state.clientMsg.text)}</div><button class="btn" data-act="copymsg">${t("copyMsg")}</button>`}</div>` : ""}
   </section>
-  ${p.example ? "" : `<button class="btn" data-act="dup">Duplicar orçamento</button>${dangerZone(p)}`}`;
+  ${p.example ? "" : `<button class="btn" data-act="dup">${t("dup")}</button>${dangerZone(p)}`}`;
 }
 function dangerZone(p){
   if(p.example) return "";
   return state.confirmDelete
-    ? `<div class="confirm"><span class="grow small">Excluir “${esc(p.name)}” de vez?</span><button class="btn" data-act="nodel">Cancelar</button><button class="btn danger" data-act="dodel">Excluir</button></div>`
-    : `<button class="btn ghost danger" data-act="askdel" style="align-self:center">Excluir orçamento</button>`;
+    ? `<div class="confirm"><span class="grow small">${esc(t("delAsk", { n:p.name }))}</span><button class="btn" data-act="nodel">${t("cancel")}</button><button class="btn danger" data-act="dodel">${t("del")}</button></div>`
+    : `<button class="btn ghost danger" data-act="askdel" style="align-self:center">${t("delBtn")}</button>`;
 }
 function itemRow(p, it, gi, ii){
   const amt = num(it.qty) * num(it.unitPrice);
   const open = state.editing && state.editing.gi === gi && state.editing.ii === ii;
   const row = `<button class="it" data-act="edit" data-g="${gi}" data-i="${ii}" aria-expanded="${open}">
-    <span class="k" style="background:${KIND[it.kind].color}"></span>
-    <span><span class="nm">${esc(it.name)}</span><br><span class="sub">${esc(String(it.qty).replace(".", ","))} ${esc(it.unit)} × ${money(it.unitPrice)}</span>${it.note ? `<br><span class="small muted">${esc(it.note)}</span>` : ""}</span>
-    <span class="amt">${money(amt)}</span></button>`;
+    <span class="k" style="background:${KIND_COLOR[it.kind]}"></span>
+    <span><span class="nm">${esc(it.name)}</span><br><span class="sub">${esc(fmtQty(it.qty))} ${esc(it.unit)} × ${pm(p, it.unitPrice)}</span>${it.note ? `<br><span class="small muted">${esc(it.note)}</span>` : ""}</span>
+    <span class="amt">${pm(p, amt)}</span></button>`;
   if(!open) return row;
   return row + `<div class="edit">
-    <input class="in" data-act="f" data-f="name" value="${esc(it.name)}" aria-label="Descrição">
+    <input class="in" data-act="f" data-f="name" value="${esc(it.name)}" aria-label="${t("desc")}">
     <div class="edit grid3" style="padding:0;background:none;border:0">
-      <label class="f">Qtd<input class="in num" inputmode="decimal" data-act="f" data-f="qty" value="${esc(it.qty)}"></label>
-      <label class="f">Unid.<input class="in" data-act="f" data-f="unit" value="${esc(it.unit)}"></label>
-      <label class="f">Preço un.<input class="in num" inputmode="decimal" data-act="f" data-f="unitPrice" value="${esc(it.unitPrice)}"></label></div>
-    <div class="row" style="flex-wrap:wrap"><div class="seg">${Object.keys(KIND).map(k => `<button data-act="kind" data-k="${k}" aria-pressed="${it.kind === k}">${KIND[k].label}</button>`).join("")}</div>
-      <span class="grow"></span><button class="btn ghost small" data-act="topb">Salvar na tabela</button><button class="btn ghost danger small" data-act="rmitem">Remover</button><button class="btn small" data-act="done">OK</button></div></div>`;
+      <label class="f">${t("qty")}<input class="in num" inputmode="decimal" data-act="f" data-f="qty" value="${esc(fmtIn(it.qty))}"></label>
+      <label class="f">${t("unit")}<input class="in" data-act="f" data-f="unit" value="${esc(it.unit)}"></label>
+      <label class="f">${t("unitPrice")}<input class="in num" inputmode="decimal" data-act="f" data-f="unitPrice" value="${esc(fmtIn(it.unitPrice))}"></label></div>
+    <div class="row" style="flex-wrap:wrap"><div class="seg">${KINDS.map(k => `<button data-act="kind" data-k="${k}" aria-pressed="${it.kind === k}">${kindLabel(k)}</button>`).join("")}</div>
+      <span class="grow"></span><button class="btn ghost small" data-act="topb">${t("saveToList")}</button><button class="btn ghost danger small" data-act="rmitem">${t("remove")}</button><button class="btn small" data-act="done">${t("ok")}</button></div></div>`;
 }
 
 function vPrices(){
-  const rows = state.pricebook.map((p, i) => `<div class="pb-row"><span class="grow"><span style="font-weight:500">${esc(p.name)}</span><br><span class="small muted">por ${esc(p.unit)}${p.cat ? " · " + esc(p.cat) : ""}</span></span>
-    <span class="row"><span class="num">${money(p.price)}</span><button class="btn ghost danger small" data-act="pbdel" data-i="${i}" aria-label="Remover ${esc(p.name)}">×</button></span></div>`).join("");
-  return `<div><span class="eyebrow">Meus preços</span><h1 style="font-size:26px;margin-top:4px">Sua tabela manda no preço</h1>
-    <p class="muted" style="margin:6px 0 0">A IA usa estes valores sempre que um item bater com a tabela. Cadastre o que você paga no seu fornecedor e o seu preço de mão de obra por serviço.</p></div>
+  const rows = state.pricebook.map((p, i) => `<div class="pb-row"><span class="grow"><span style="font-weight:500">${esc(p.name)}</span><br><span class="small muted">${esc(t("per", { u:p.unit }))}${p.cat ? " · " + esc(p.cat) : ""}</span></span>
+    <span class="row"><span class="num">${money(p.price)}</span><button class="btn ghost danger small" data-act="pbdel" data-i="${i}" aria-label="${t("remove")} ${esc(p.name)}">×</button></span></div>`).join("");
+  return `<div><span class="eyebrow">${t("pricesEy")}</span><h1 style="font-size:26px;margin-top:4px">${t("pricesH")}</h1>
+    <p class="muted" style="margin:6px 0 0">${t("pricesP")}</p></div>
   <form class="card pad stack" id="pbform">
-    <label class="f">Item<input class="in" id="pb-n" placeholder="Ex.: Porcelanato 60×60 Portobello" required></label>
-    <div class="grid2"><label class="f">Unidade<input class="in" id="pb-u" placeholder="m²" required></label>
-      <label class="f">Preço (${esc(state.settings.currency)})<input class="in num" id="pb-p" inputmode="decimal" placeholder="89,90" required></label></div>
-    <label class="f">Categoria (opcional)<input class="in" id="pb-c" placeholder="Piso, Elétrica, Mão de obra…"></label>
-    <button class="btn primary" type="submit">${I.plus} Adicionar à tabela</button>
+    <label class="f">${t("pbItem")}<input class="in" id="pb-n" placeholder="${esc(t("pbItemPh"))}" required></label>
+    <div class="grid2"><label class="f">${t("pbUnit")}<input class="in" id="pb-u" placeholder="${esc(state.settings.units === "metric" ? "m²" : t("pbUnitPh"))}" required></label>
+      <label class="f">${t("pbPrice", { c:esc(state.settings.currency) })}<input class="in num" id="pb-p" inputmode="decimal" placeholder="${esc(t("pbPricePh"))}" required></label></div>
+    <label class="f">${t("pbCat")}<input class="in" id="pb-c" placeholder="${esc(t("pbCatPh"))}"></label>
+    <button class="btn primary" type="submit">${I.plus} ${t("pbAdd")}</button>
   </form>
-  ${rows ? `<section class="card">${rows}</section>` : `<div class="empty card">Nenhum preço cadastrado ainda. Dica: ao editar um item num orçamento, toque em “Salvar na tabela”.</div>`}`;
+  ${rows ? `<section class="card">${rows}</section>` : `<div class="empty card">${t("pbEmpty")}</div>`}`;
 }
 
 function vSettings(){
   const s = state.settings;
   const seg = (k, opts) => `<div class="seg">${opts.map(([v, l]) => `<button type="button" data-act="set" data-k="${k}" data-v="${v}" aria-pressed="${s[k] === v}">${l}</button>`).join("")}</div>`;
   const key = getKey();
-  return `<div><span class="eyebrow">Ajustes</span><h1 style="font-size:26px;margin-top:4px">Padrões dos orçamentos</h1></div>
-  <section class="card pad stack" id="keybox">
-    <div class="row"><span class="eyebrow grow">Chave da API Anthropic</span><span class="badge" style="${key ? "background:var(--good);color:var(--surface)" : ""}">${key ? "configurada" : "não configurada"}</span></div>
+  const keyBox = IN_CLAUDE ? "" : `<section class="card pad stack" id="keybox">
+    <div class="row"><span class="eyebrow grow">${t("keyT")}</span><span class="badge" style="${key ? "background:var(--good);color:var(--surface)" : ""}">${key ? t("keyOn") : t("keyOff")}</span></div>
     ${key ? `<div class="row"><span class="num grow small">${esc(key.slice(0, 10))}…${esc(key.slice(-4))}</span>
-        <button class="btn small" data-act="testkey">Testar</button><button class="btn ghost danger small" data-act="rmkey">Remover</button></div>`
-      : `<form class="ask" id="keyform"><input class="in" id="apikey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-..." aria-label="Chave da API"><button class="btn primary" type="submit">Salvar</button></form>`}
+        <button class="btn small" data-act="testkey">${t("test")}</button><button class="btn ghost danger small" data-act="rmkey">${t("remove")}</button></div>`
+      : `<form class="ask" id="keyform"><input class="in" id="apikey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-..." aria-label="${t("keyT")}"><button class="btn primary" type="submit">${t("save")}</button></form>`}
     ${state.keyStatus ? `<span class="small" style="color:${state.keyStatus.ok ? "var(--good)" : "var(--bad)"}">${esc(state.keyStatus.msg)}</span>` : ""}
-    <span class="small muted">Crie a chave em <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--accent)">console.anthropic.com</a> e coloque créditos na conta. A chave fica salva só neste navegador e vai direto para a API da Anthropic. Defina um limite de gasto no console por segurança. Cada orçamento com fotos custa em geral poucos centavos de dólar.</span>
-  </section>
+    <span class="small muted">${t("keyHelp", { link:'<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--accent)">console.anthropic.com</a>' })}</span>
+  </section>`;
+  return `<div><span class="eyebrow">${t("setEy")}</span><h1 style="font-size:26px;margin-top:4px">${t("setH")}</h1></div>
+  ${keyBox}
   <section class="card pad stack">
-    <label class="f">Seu nome ou empresa (aparece no orçamento)<input class="in" data-act="setin" data-k="company" value="${esc(s.company)}" placeholder="Ex.: Silva Reformas"></label>
-    <label class="f">Região de preços<input class="in" data-act="setin" data-k="region" value="${esc(s.region)}" placeholder="Cidade, UF"></label>
-    <label class="f">Valor da sua hora de mão de obra (${esc(s.currency)})<input class="in num" inputmode="decimal" data-act="setin" data-k="laborRate" value="${esc(s.laborRate)}"></label>
-    <div class="f" style="font-size:13px;color:var(--muted)">Moeda ${seg("currency", [["BRL","R$"],["USD","US$"],["EUR","€"]])}</div>
-    <div class="f" style="font-size:13px;color:var(--muted)">Medidas ${seg("units", [["métrico","Métrico"],["imperial","Imperial"]])}</div>
+    <label class="f">${t("company")}<input class="in" data-act="setin" data-k="company" value="${esc(s.company)}" placeholder="${esc(t("companyPh"))}"></label>
+    <label class="f">${t("region")}<input class="in" data-act="setin" data-k="region" value="${esc(s.region)}" placeholder="${esc(t("regionPh"))}"></label>
+    <label class="f">${t("labor", { c:esc(s.currency) })}<input class="in num" inputmode="decimal" data-act="setin" data-k="laborRate" value="${esc(fmtIn(s.laborRate))}"></label>
+    <div class="f" style="font-size:13px;color:var(--muted)">${t("currency")} ${seg("currency", [["USD","US$"],["EUR","€"],["BRL","R$"]])}</div>
+    <div class="f" style="font-size:13px;color:var(--muted)">${t("units")} ${seg("units", [["imperial", t("imperial")],["metric", t("metric")]])}</div>
   </section>
-  <section class="card pad stack"><span class="eyebrow">Fechamento padrão para novos orçamentos</span>
-    <div class="grid2"><label class="f">Contingência %<input class="in num" inputmode="decimal" data-act="setin" data-k="contingency" value="${esc(s.contingency)}"></label>
-      <label class="f">Margem / lucro %<input class="in num" inputmode="decimal" data-act="setin" data-k="markup" value="${esc(s.markup)}"></label>
-      <label class="f">Impostos %<input class="in num" inputmode="decimal" data-act="setin" data-k="tax" value="${esc(s.tax)}"></label></div></section>
-  <section class="card pad stack"><span class="eyebrow">Precisão da IA</span>
-    ${seg("tier", [["quick","Rápida"],["default","Padrão"],["complex","Máxima"]])}
-    <span class="small muted">Todas usam o Claude Opus 5.5. “Máxima” pensa mais e erra menos em obras grandes, mas demora mais e custa mais por orçamento; “Rápida” é a mais barata.</span></section>
-  <section class="card pad stack"><span class="eyebrow">Backup</span>
-    <span class="small muted">Seus orçamentos, preços e ajustes ficam salvos só neste navegador. Exporte um backup de vez em quando, ou para passar para outro aparelho. A chave da API não vai no backup.</span>
-    <div class="actions"><button class="btn" data-act="backup">Exportar backup</button><button class="btn" data-act="restore">Importar backup</button></div>
-    <input type="file" id="restoreIn" accept="application/json,.json" class="vh" aria-label="Arquivo de backup">
+  <section class="card pad stack"><span class="eyebrow">${t("defaultsT")}</span>
+    <div class="grid2"><label class="f">${t("contPct")}<input class="in num" inputmode="decimal" data-act="setin" data-k="contingency" value="${esc(fmtIn(s.contingency))}"></label>
+      <label class="f">${t("mkPct")}<input class="in num" inputmode="decimal" data-act="setin" data-k="markup" value="${esc(fmtIn(s.markup))}"></label>
+      <label class="f">${t("taxPct")}<input class="in num" inputmode="decimal" data-act="setin" data-k="tax" value="${esc(fmtIn(s.tax))}"></label></div></section>
+  <section class="card pad stack"><span class="eyebrow">${t("precisionT")}</span>
+    ${seg("tier", [["quick", t("pQuick")],["default", t("pDefault")],["complex", t("pComplex")]])}
+    <span class="small muted">${IN_CLAUDE ? t("precisionHelpClaude") : t("precisionHelpApi")}</span></section>
+  <section class="card pad stack"><span class="eyebrow">${t("backupT")}</span>
+    <span class="small muted">${state.storeMode === "db" ? t("storedAccount") : t("storedDevice")} ${t("backupHelp")}</span>
+    <div class="actions"><button class="btn" data-act="backup">${t("exportB")}</button><button class="btn" data-act="restore">${t("importB")}</button></div>
+    <input type="file" id="restoreIn" accept="application/json,.json" class="vh" aria-label="${t("importB")}">
   </section>`;
 }
 
 /* ---------- AI flows ---------- */
 let ctl = null;
-async function runAI(label, prompt, opts){
+async function runAI(labelKey, prompt, opts){
   ctl = new AbortController();
-  state.busy = { label, text:"", hasText:false }; render();
+  state.busy = { label:labelKey, text:"", hasText:false }; render();
   try{
     return await state.sample.json(prompt, { ...opts, signal: ctl.signal, modelTier: state.settings.tier || "default",
-      onText: ({text}) => { if(!state.busy) return; state.busy.text = text.slice(-600); state.busy.hasText = true; const st = $("#stream"); if(st){ st.textContent = state.busy.text; st.scrollTop = st.scrollHeight; } else render(); } });
+      onText: ({ text }) => { if(!state.busy) return; state.busy.text = text.slice(-600); state.busy.hasText = true; const st = $("#stream"); if(st){ st.textContent = state.busy.text; st.scrollTop = st.scrollHeight; } else render(); } });
   } finally { state.busy = null; }
 }
 
@@ -760,11 +1068,12 @@ async function doAnalyze(){
   d.description = $("#desc").value.trim(); d.location = $("#loc").value.trim();
   const imgs = d.photos.map(p => p.blob);
   try{
-    const a = await runAI("Analisando fotos e descrição", ANALYZE_PROMPT({ nPhotos: imgs.length, description: d.description, location: d.location }), imgs.length ? { images: imgs } : {});
-    if(!a || typeof a !== "object") throw {code:"invalid_json"};
-    a.questions = (Array.isArray(a.questions) ? a.questions : []).slice(0, 5).map((q, i) => ({ id: String(q.id || "q" + (i+1)), question: String(q.question || ""), options: Array.isArray(q.options) ? q.options.map(String).slice(0, 4) : [] })).filter(q => q.question);
-    a.measurements = (Array.isArray(a.measurements) ? a.measurements : []).map(m => ({ label:String(m.label||""), value:m.value, unit:String(m.unit||""), basis: m.basis ? String(m.basis) : "" }));
-    const p = { id:uid(), name: a.title || "Novo orçamento", createdAt:Date.now(), updatedAt:Date.now(), description:d.description, location:d.location,
+    const a = await runAI("busyAnalyze", ANALYZE_PROMPT({ nPhotos: imgs.length, description: d.description, location: d.location }), imgs.length ? { images: imgs } : {});
+    if(!a || typeof a !== "object") throw { code:"invalid_json" };
+    a.questions = (Array.isArray(a.questions) ? a.questions : []).slice(0, 5).map((q, i) => ({ id: String(q.id || "q" + (i + 1)), question: String(q.question || ""), options: Array.isArray(q.options) ? q.options.map(String).slice(0, 4) : [] })).filter(q => q.question);
+    a.measurements = (Array.isArray(a.measurements) ? a.measurements : []).map(m => ({ label:String(m.label || ""), value:m.value, unit:String(m.unit || ""), basis: m.basis ? String(m.basis) : "" }));
+    const p = { id:uid(), name: a.title || t("newProject"), createdAt:Date.now(), updatedAt:Date.now(), description:d.description, location:d.location,
+      currency: state.settings.currency, units: state.settings.units, lang: lang(),
       thumbs: d.photos.slice(0, 4).map(x => x.thumb).filter(Boolean), analysis:a, estimate:null,
       adj:{ contingency:state.settings.contingency, markup:state.settings.markup, tax:state.settings.tax } };
     d.project = p; d.step = 2; d.answers = {}; d.custom = {};
@@ -776,12 +1085,12 @@ async function doAnalyze(){
 async function doEstimate(){
   const d = state.draft, p = d.project;
   d.extra = $("#extra")?.value.trim() || "";
-  const answers = (p.analysis.questions || []).map(q => ({ pergunta:q.question, resposta: d.custom[q.id]?.trim() || d.answers[q.id] || "não informado" }));
-  if(d.extra) answers.push({ pergunta:"Observações adicionais", resposta:d.extra });
+  const answers = (p.analysis.questions || []).map(q => ({ question:q.question, answer: d.custom[q.id]?.trim() || d.answers[q.id] || t("notGiven") }));
+  if(d.extra) answers.push({ question:t("extraQ"), answer:d.extra });
   p.answers = answers;
   const imgs = d.photos.map(x => x.blob);
   try{
-    const e = normalizeEstimate(await runAI("Montando o orçamento item a item", ESTIMATE_PROMPT(p, { answers, nPhotos: imgs.length }), imgs.length ? { images: imgs } : {}));
+    const e = normalizeEstimate(await runAI("busyEstimate", ESTIMATE_PROMPT(p, { answers, nPhotos: imgs.length }), imgs.length ? { images: imgs } : {}));
     p.estimate = e; if(e.title) p.name = e.title;
     saveProject(p, true);
     d.photos.forEach(x => URL.revokeObjectURL(x.url));
@@ -796,23 +1105,23 @@ async function doRefine(p){
   const instr = $("#refine").value.trim(); if(!instr) return;
   state.refineDraft = instr;
   try{
-    const e = normalizeEstimate(await runAI("Ajustando o orçamento", REFINE_PROMPT(p, instr), { cache:false }));
-    p.estimate = e; state.refineDraft = ""; saveProject(p, true); toast("Orçamento atualizado.");
+    const e = normalizeEstimate(await runAI("busyRefine", REFINE_PROMPT(p, instr), { cache:false }));
+    p.estimate = e; state.refineDraft = ""; saveProject(p, true); toast(t("updated"));
   }catch(err){ if(err?.code !== "cancelled") toast(aiErr(err)); }
   render();
 }
 
 async function doClientMsg(p){
-  const t = totals(p);
+  const tt = totals(p);
   state.clientMsg = { loading:true }; render();
-  const prompt = `Escreva uma mensagem curta e profissional (para WhatsApp) apresentando este orçamento ao cliente. Português do Brasil, tom cordial e direto, sem emojis em excesso, sem inventar dados.
-Quem envia: ${state.settings.company || "(sem nome)"}
-Serviço: ${p.estimate.scope || p.description}
-Total: ${money(t.total)} (faixa ${money(t.low)} a ${money(t.high)})
-Prazo: ${p.estimate.durationDays || "a combinar"} dia(s). Equipe: ${p.estimate.crew || "-"}
-Incluso (etapas): ${p.estimate.groups.map(g => g.name).join(", ")}
-Não incluso: ${p.estimate.exclusions.join("; ") || "-"}
-Termine pedindo confirmação e dizendo que o valor vale por 15 dias. Responda só com o texto da mensagem.`;
+  const prompt = `Write a short, professional message (to send by text message or email) presenting this estimate to the client. Write it in ${LANG_NAME[lang()]}. Friendly and direct, no emoji overload, don't invent facts.
+Sender: ${state.settings.company || "(no name)"}
+Work: ${p.estimate.scope || p.description}
+Total: ${pm(p, tt.total)} (range ${pm(p, tt.low)} to ${pm(p, tt.high)})
+Duration: ${p.estimate.durationDays || "to be scheduled"} day(s). Crew: ${p.estimate.crew || "-"}
+Included (phases): ${p.estimate.groups.map(g => g.name).join(", ")}
+Not included: ${p.estimate.exclusions.join("; ") || "-"}
+End by asking for confirmation and saying the price is valid for 15 days. Reply with the message text only.`;
   try{ const { text } = await state.sample(prompt, { modelTier:"quick", cache:false }); state.clientMsg = { text }; }
   catch(e){ state.clientMsg = null; toast(aiErr(e)); }
   render();
@@ -820,64 +1129,78 @@ Termine pedindo confirmação e dizendo que o valor vale por 15 dias. Responda s
 
 /* ---------- export ---------- */
 function plainText(p){
-  const t = totals(p), e = p.estimate, L = [];
-  L.push(`ORÇAMENTO — ${p.name}`); if(state.settings.company) L.push(state.settings.company);
+  const tt = totals(p), e = p.estimate, L = [];
+  L.push(`${t("quoteT").toUpperCase()} — ${p.name}`); if(state.settings.company) L.push(state.settings.company);
   L.push(`${fmtDate(Date.now())} · ${p.location || ""}`, "", e.scope || p.description, "");
-  e.groups.forEach(g => { L.push(`■ ${g.name} — ${money(groupSum(g))}`); g.items.forEach(it => L.push(`  • ${it.name}: ${String(it.qty).replace(".", ",")} ${it.unit} × ${money(it.unitPrice)} = ${money(num(it.qty)*num(it.unitPrice))}`)); L.push(""); });
-  L.push(`Custo direto: ${money(t.sub)}`);
-  if(t.cont) L.push(`Contingência: ${money(t.cont)}`); if(t.mk) L.push(`Margem: ${money(t.mk)}`); if(t.tax) L.push(`Impostos: ${money(t.tax)}`);
-  L.push(`TOTAL: ${money(t.total)}`, "");
-  if(e.durationDays) L.push(`Prazo estimado: ${e.durationDays} dia(s)`);
-  if(e.exclusions.length) L.push(`Não incluso: ${e.exclusions.join("; ")}`);
+  e.groups.forEach(g => { L.push(`■ ${g.name} — ${pm(p, groupSum(g))}`); g.items.forEach(it => L.push(`  • ${it.name}: ${fmtQty(it.qty)} ${it.unit} × ${pm(p, it.unitPrice)} = ${pm(p, num(it.qty) * num(it.unitPrice))}`)); L.push(""); });
+  L.push(`${t("directCost")}: ${pm(p, tt.sub)}`);
+  if(tt.cont) L.push(`${t("contingency")}: ${pm(p, tt.cont)}`); if(tt.mk) L.push(`${t("markup")}: ${pm(p, tt.mk)}`); if(tt.tax) L.push(`${t("tax")}: ${pm(p, tt.tax)}`);
+  L.push(`${t("total").toUpperCase()}: ${pm(p, tt.total)}`, "");
+  if(e.durationDays) L.push(`${t("durationL")}: ${t("daysN", { n:e.durationDays })}`);
+  if(e.exclusions.length) L.push(`${t("exclusions")}: ${e.exclusions.join("; ")}`);
   return L.join("\n");
 }
 function quoteHTML(p){
-  const t = totals(p), e = p.estimate, s = state.settings;
-  const rows = e.groups.map(g => `<tr class="g"><td colspan="4">${esc(g.name)}</td><td>${money(groupSum(g))}</td></tr>` + g.items.map(it => `<tr><td>${esc(it.name)}</td><td>${esc(String(it.qty).replace(".", ","))}</td><td>${esc(it.unit)}</td><td>${money(it.unitPrice)}</td><td>${money(num(it.qty)*num(it.unitPrice))}</td></tr>`).join("")).join("");
-  const adds = [["Custo direto", t.sub], t.cont && ["Contingência", t.cont], t.mk && ["Margem", t.mk], t.tax && ["Impostos", t.tax]].filter(Boolean).map(([l, v]) => `<tr><td colspan="4">${l}</td><td>${money(v)}</td></tr>`).join("");
-  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Orçamento - ${esc(p.name)}</title>
+  const tt = totals(p), e = p.estimate, s = state.settings;
+  const rows = e.groups.map(g => `<tr class="g"><td colspan="4">${esc(g.name)}</td><td>${pm(p, groupSum(g))}</td></tr>` + g.items.map(it => `<tr><td>${esc(it.name)}</td><td>${esc(fmtQty(it.qty))}</td><td>${esc(it.unit)}</td><td>${pm(p, it.unitPrice)}</td><td>${pm(p, num(it.qty) * num(it.unitPrice))}</td></tr>`).join("")).join("");
+  const adds = [[t("directCost"), tt.sub], tt.cont && [t("contingency"), tt.cont], tt.mk && [t("markup"), tt.mk], tt.tax && [t("tax"), tt.tax]].filter(Boolean).map(([l, v]) => `<tr><td colspan="4">${esc(l)}</td><td>${pm(p, v)}</td></tr>`).join("");
+  return `<!doctype html><html lang="${LOCALE[lang()]}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(t("quoteT"))} - ${esc(p.name)}</title>
 <style>body{font:14px/1.5 system-ui,sans-serif;color:#16202B;max-width:780px;margin:32px auto;padding:0 20px}h1{font-size:24px;margin:0}table{width:100%;border-collapse:collapse;margin:20px 0}td{padding:7px 6px;border-bottom:1px solid #D3D9DF;vertical-align:top}td:nth-child(n+2){text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}tr.g td{background:#EEF0F2;font-weight:700}tfoot td{font-weight:600}tr.t td{font-size:18px;border-top:2px solid #16202B}.m{color:#5B6773}</style></head><body>
-<p class="m">${esc(s.company || "")}</p><h1>Orçamento: ${esc(p.name)}</h1><p class="m">${fmtDate(Date.now())} · ${esc(p.location || "")} · válido por 15 dias</p>
+<p class="m">${esc(s.company || "")}</p><h1>${esc(t("quoteT"))}: ${esc(p.name)}</h1><p class="m">${fmtDate(Date.now())} · ${esc(p.location || "")} · ${esc(t("validFor"))}</p>
 <p>${esc(e.scope || p.description)}</p>
-<table><thead><tr><td><b>Item</b></td><td><b>Qtd</b></td><td><b>Un.</b></td><td><b>Preço un.</b></td><td><b>Total</b></td></tr></thead><tbody>${rows}</tbody>
-<tfoot>${adds}<tr class="t"><td colspan="4">Total</td><td>${money(t.total)}</td></tr></tfoot></table>
-${e.durationDays ? `<p><b>Prazo estimado:</b> ${esc(e.durationDays)} dia(s)${e.crew ? " · " + esc(e.crew) : ""}</p>` : ""}
-${e.assumptions.length ? `<p><b>Premissas:</b> ${e.assumptions.map(esc).join("; ")}</p>` : ""}
-${e.exclusions.length ? `<p><b>Não incluso:</b> ${e.exclusions.map(esc).join("; ")}</p>` : ""}
+<table><thead><tr><td><b>${esc(t("item"))}</b></td><td><b>${esc(t("qty"))}</b></td><td><b>${esc(t("unit"))}</b></td><td><b>${esc(t("unitPrice"))}</b></td><td><b>${esc(t("total"))}</b></td></tr></thead><tbody>${rows}</tbody>
+<tfoot>${adds}<tr class="t"><td colspan="4">${esc(t("total"))}</td><td>${pm(p, tt.total)}</td></tr></tfoot></table>
+${e.durationDays ? `<p><b>${esc(t("durationL"))}:</b> ${esc(t("daysN", { n:e.durationDays }))}${e.crew ? " · " + esc(e.crew) : ""}</p>` : ""}
+${e.assumptions.length ? `<p><b>${esc(t("assumptions"))}:</b> ${e.assumptions.map(esc).join("; ")}</p>` : ""}
+${e.exclusions.length ? `<p><b>${esc(t("exclusions"))}:</b> ${e.exclusions.map(esc).join("; ")}</p>` : ""}
 </body></html>`;
 }
 function csv(p){
+  const pt = lang() === "pt", sep = pt ? ";" : ",";
   const q = v => `"${String(v).replace(/"/g, '""')}"`;
-  const L = [["Etapa","Tipo","Item","Qtd","Unidade","Preço unitário","Total"].map(q).join(";")];
-  p.estimate.groups.forEach(g => g.items.forEach(it => L.push([g.name, KIND[it.kind].label, it.name, String(it.qty).replace(".", ","), it.unit, num(it.unitPrice).toFixed(2).replace(".", ","), (num(it.qty)*num(it.unitPrice)).toFixed(2).replace(".", ",")].map(q).join(";"))));
-  return "\uFEFF" + L.join("\n");
+  const d = v => { const s = num(v).toFixed(2); return pt ? s.replace(".", ",") : s; };
+  const L = [t("csvHead").map(q).join(sep)];
+  p.estimate.groups.forEach(g => g.items.forEach(it => L.push([g.name, kindLabel(it.kind), it.name, pt ? String(it.qty).replace(".", ",") : String(it.qty), it.unit, d(it.unitPrice), d(num(it.qty) * num(it.unitPrice))].map(q).join(sep))));
+  return "﻿" + L.join("\n");
 }
 async function download(filename, data){
+  if(IN_CLAUDE){
+    const dl = await window.claude.use("downloads");
+    if(!dl){ toast(t("copyManual")); return; }
+    try{ const r = await dl.save({ filename, data }); if(r?.status === "saved") toast(t("saved")); }
+    catch(e){ if(e?.code !== "cancelled" && e?.code !== "declined") toast(t("notSaved")); }
+    return;
+  }
   const type = filename.endsWith(".csv") ? "text/csv" : filename.endsWith(".json") ? "application/json" : "text/html";
   const url = URL.createObjectURL(new Blob([data], { type: type + ";charset=utf-8" }));
   const a = document.createElement("a"); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000);
-  toast("Arquivo baixado.");
+  toast(t("downloaded"));
 }
 async function copy(text){
-  try{ await navigator.clipboard.writeText(text); toast("Copiado."); }
-  catch{ const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); toast("Copiado."); }catch{ toast("Selecione e copie manualmente."); } ta.remove(); }
+  try{ await navigator.clipboard.writeText(text); toast(t("copied")); }
+  catch{ const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); toast(t("copied")); }catch{ toast(t("copyManual")); } ta.remove(); }
 }
-const slug = s => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "orcamento";
+const slug = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "estimate";
 
 /* ---------- events ---------- */
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if(!b || b.tagName === "INPUT" || b.tagName === "TEXTAREA") return;
   const act = b.dataset.act, r = state.route, p = r.name === "project" ? getProject(r.id) : null;
-  const touch = () => { if(p && !p.example) saveProject(p); render(); };
+  const touch = () => { if(p) saveProject(p); render(); };
   switch(act){
+    case "lang": {
+      state.settings.lang = b.dataset.k; saveSettings();
+      try{ localStorage.setItem("truecost.lang", b.dataset.k); }catch{}
+      if(state.exampleCopy && r.name === "project" && r.id === "example") state.exampleCopy = buildExample();
+      render(); break; }
     case "tab": go({ name:b.dataset.k }); break;
     case "back":
       if(r.name === "new" && state.draft?.step === 2){ state.draft.step = 1; render(); }
       else go({ name:"home" });
       break;
     case "open": {
-      if(b.dataset.id === "exemplo") state.exampleCopy = clone(EXAMPLE);
+      if(b.dataset.id === "example") state.exampleCopy = buildExample();
       go({ name:"project", id:b.dataset.id }); state.tab = "home"; renderTabs(); break; }
     case "cam": $("#camIn").click(); break;
     case "gal": $("#galIn").click(); break;
@@ -889,45 +1212,44 @@ document.addEventListener("click", e => {
     case "resume": { const pr = getProject(b.dataset.id); state.draft = { step:2, photos:[], description:pr.description, location:pr.location, project:pr, answers:{}, custom:{} }; state.route = { name:"new" }; state.tab = "new"; render(); break; }
     case "edit": { const gi = +b.dataset.g, ii = +b.dataset.i; state.editing = state.editing && state.editing.gi === gi && state.editing.ii === ii ? null : { gi, ii }; render(); break; }
     case "done": state.editing = null; touch(); break;
-    case "kind": { const it = p.estimate.groups[state.editing.gi].items[state.editing.ii]; it.kind = b.dataset.k; touch(); break; }
+    case "kind": { p.estimate.groups[state.editing.gi].items[state.editing.ii].kind = b.dataset.k; touch(); break; }
     case "rmitem": { p.estimate.groups[state.editing.gi].items.splice(state.editing.ii, 1); state.editing = null; touch(); break; }
     case "topb": {
       const it = p.estimate.groups[state.editing.gi].items[state.editing.ii];
       const i = state.pricebook.findIndex(x => x.name.toLowerCase() === it.name.toLowerCase());
       const row = { name:it.name, unit:it.unit, price:num(it.unitPrice), cat:p.estimate.groups[state.editing.gi].name };
       if(i > -1) state.pricebook[i] = row; else state.pricebook.unshift(row);
-      savePricebook(); toast(i > -1 ? "Preço atualizado na sua tabela." : "Salvo na sua tabela."); break; }
-    case "additem": { const g = p.estimate.groups[+b.dataset.g]; g.items.push({ kind:"material", name:"Novo item", qty:1, unit:"un", unitPrice:0, note:"" }); state.editing = { gi:+b.dataset.g, ii:g.items.length - 1 }; touch(); break; }
-    case "addpb": { const g = p.estimate.groups[+b.dataset.g]; state.pbPick = +b.dataset.g;
-      const pb = state.pricebook[0]; if(!pb) break;
-      openPicker(p, +b.dataset.g); break; }
-    case "addgroup": p.estimate.groups.push({ name:"Nova etapa", items:[{ kind:"labor", name:"Mão de obra", qty:1, unit:"h", unitPrice:num(state.settings.laborRate), note:"" }] }); state.editing = { gi:p.estimate.groups.length - 1, ii:0 }; touch(); break;
-    case "upsell": { const u = p.estimate.upsells.splice(+b.dataset.i, 1)[0]; let g = p.estimate.groups.find(x => x.name === "Adicionais"); if(!g){ g = { name:"Adicionais", items:[] }; p.estimate.groups.push(g); } g.items.push({ kind:"other", name:u.name, qty:1, unit:"vb", unitPrice:u.price, note:"" }); touch(); toast("Adicional incluído."); break; }
+      savePricebook(); toast(i > -1 ? t("priceUpdated") : t("priceSaved")); break; }
+    case "additem": { const g = p.estimate.groups[+b.dataset.g]; g.items.push({ kind:"material", name:t("newItem"), qty:1, unit:"ea", unitPrice:0, note:"" }); state.editing = { gi:+b.dataset.g, ii:g.items.length - 1 }; touch(); break; }
+    case "addpb": state.pbPick = +b.dataset.g; openPicker(); break;
+    case "addgroup": p.estimate.groups.push({ name:t("newPhase"), items:[{ kind:"labor", name:kindLabel("labor"), qty:1, unit:"hr", unitPrice:num(state.settings.laborRate), note:"" }] }); state.editing = { gi:p.estimate.groups.length - 1, ii:0 }; touch(); break;
+    case "upsell": { const u = p.estimate.upsells.splice(+b.dataset.i, 1)[0]; const gname = t("addonsGroup"); let g = p.estimate.groups.find(x => x.name === gname); if(!g){ g = { name:gname, items:[] }; p.estimate.groups.push(g); } g.items.push({ kind:"other", name:u.name, qty:1, unit:"lot", unitPrice:u.price, note:"" }); touch(); toast(t("addonAdded")); break; }
     case "refine": doRefine(p); break;
     case "clientmsg": doClientMsg(p); break;
     case "copymsg": copy(state.clientMsg?.text || ""); break;
     case "copytext": copy(plainText(p)); break;
-    case "exporthtml": download(`orcamento-${slug(p.name)}.html`, quoteHTML(p)); break;
-    case "exportcsv": download(`orcamento-${slug(p.name)}.csv`, csv(p)); break;
-    case "dup": { const c = clone(p); c.id = uid(); c.name = p.name + " (cópia)"; c.createdAt = Date.now(); state.projects.push(c); saveProject(c, true); go({ name:"project", id:c.id }); toast("Cópia criada."); break; }
+    case "exporthtml": download(`${slug(t("quoteT"))}-${slug(p.name)}.html`, quoteHTML(p)); break;
+    case "exportcsv": download(`${slug(t("quoteT"))}-${slug(p.name)}.csv`, csv(p)); break;
+    case "dup": { const c = clone(p); c.id = uid(); c.name = t("copyOf", { n:p.name }); c.createdAt = Date.now(); state.projects.push(c); saveProject(c, true); go({ name:"project", id:c.id }); toast(t("copyCreated")); break; }
     case "askdel": state.confirmDelete = true; render(); break;
     case "nodel": state.confirmDelete = false; render(); break;
-    case "dodel": { state.projects = state.projects.filter(x => x.id !== p.id); Store.del("p_" + p.id); go({ name:"home" }); toast("Orçamento excluído."); break; }
+    case "dodel": { state.projects = state.projects.filter(x => x.id !== p.id); Store.del("p_" + p.id); go({ name:"home" }); toast(t("deleted")); break; }
     case "pbdel": state.pricebook.splice(+b.dataset.i, 1); savePricebook(); render(); break;
-    case "pick": { const pr = getProject(state.route.id); const it = state.pricebook[+b.dataset.i]; pr.estimate.groups[state.pbPick].items.push({ kind: /m[aã]o de obra|servi/i.test(it.cat || "") ? "labor" : "material", name:it.name, qty:1, unit:it.unit, unitPrice:it.price, note:"" }); closePicker(); if(!pr.example) saveProject(pr); render(); break; }
+    case "pick": { const pr = getProject(state.route.id); const it = state.pricebook[+b.dataset.i]; pr.estimate.groups[state.pbPick].items.push({ kind: /labor|mano de obra|m[aã]o de obra|servi/i.test(it.cat || "") ? "labor" : "material", name:it.name, qty:1, unit:it.unit, unitPrice:it.price, note:"" }); closePicker(); saveProject(pr); render(); break; }
     case "closepick": closePicker(); break;
     case "set": state.settings[b.dataset.k] = b.dataset.v; saveSettings(); render(); break;
-    case "rmkey": try{ localStorage.removeItem(KEY_LS); }catch{} state.keyStatus = null; initAI(); render(); toast("Chave removida deste aparelho."); break;
+    case "rmkey": try{ localStorage.removeItem(KEY_LS); }catch{} state.keyStatus = null; initAI(); render(); toast(t("keyRemoved")); break;
     case "testkey":
-      state.keyStatus = { ok:true, msg:"Testando…" }; render();
-      ask("Responda apenas: OK", { modelTier:"quick" })
-        .then(() => { state.keyStatus = { ok:true, msg:"Chave funcionando." }; })
-        .catch(err => { state.keyStatus = { ok:false, msg: aiErr(err) }; })
+      state.keyStatus = { ok:true, msg:t("keyTesting") }; render();
+      apiAsk("Reply with just: OK", { modelTier:"quick" })
+        .then(() => { state.keyStatus = { ok:true, msg:t("keyWorks") }; })
+        .catch(err => { state.keyStatus = { ok:false, msg:aiErr(err) }; })
         .finally(render);
       break;
     case "backup": {
-      const data = JSON.stringify({ app:"truecost", version:1, exportedAt:new Date().toISOString(), data: Store.readAll() }, null, 1);
-      download(`truecost-backup-${new Date().toISOString().slice(0, 10)}.json`, data); break; }
+      const data = { settings:state.settings, pricebook:{ items:state.pricebook } };
+      state.projects.forEach(x => data["p_" + x.id] = x);
+      download(`truecost-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app:"truecost", version:2, exportedAt:new Date().toISOString(), data }, null, 1)); break; }
     case "restore": $("#restoreIn")?.click(); break;
   }
 });
@@ -937,51 +1259,51 @@ document.addEventListener("input", e => {
   if(el.id === "loc" && state.draft){ state.draft.location = el.value; return; }
   if(el.id === "refine"){ state.refineDraft = el.value; return; }
   if(act === "anscustom"){ state.draft.custom[el.dataset.q] = el.value; return; }
-  if(act === "meas"){ state.draft.project.analysis.measurements[+el.dataset.i].value = el.value; return; }
-  if(act === "setin"){ state.settings[el.dataset.k] = ["laborRate","contingency","markup","tax"].includes(el.dataset.k) ? num(el.value) : el.value; clearTimeout(state._st); state._st = setTimeout(saveSettings, 700); return; }
+  if(act === "meas"){ state.draft.project.analysis.measurements[+el.dataset.i].value = num(el.value); return; }
+  if(act === "setin"){ state.settings[el.dataset.k] = ["laborRate","contingency","markup","tax"].includes(el.dataset.k) ? num(el.value) : el.value; saveSettings(); return; }
   const p = r.name === "project" ? getProject(r.id) : null; if(!p) return;
-  if(act === "f"){ const it = p.estimate.groups[state.editing.gi].items[state.editing.ii]; const f = el.dataset.f; it[f] = (f === "qty" || f === "unitPrice") ? num(el.value) : el.value; if(!p.example) saveProject(p); liveTotals(p); }
-  if(act === "adj"){ p.adj[el.dataset.k] = num(el.value); if(!p.example) saveProject(p); liveTotals(p); }
+  if(act === "f"){ const it = p.estimate.groups[state.editing.gi].items[state.editing.ii]; const f = el.dataset.f; it[f] = (f === "qty" || f === "unitPrice") ? num(el.value) : el.value; saveProject(p); liveTotals(p); }
+  if(act === "adj"){ p.adj[el.dataset.k] = num(el.value); saveProject(p); liveTotals(p); }
 });
 /* re-render on blur so typed values settle without stealing focus while typing */
 document.addEventListener("change", e => { const a = e.target.dataset.act; if(a === "adj" || a === "f") render(); });
 function liveTotals(p){
-  const t = totals(p); const big = document.querySelector(".total .big .hl"); if(big) big.textContent = money(t.total);
-  const tt = document.querySelector(".adj .r.tt .num"); if(tt) tt.textContent = money(t.total);
+  const tt = totals(p); const big = document.querySelector(".total .big .hl"); if(big) big.textContent = pm(p, tt.total);
+  const el = document.querySelector(".adj .r.tt .num"); if(el) el.textContent = pm(p, tt.total);
 }
 document.addEventListener("change", async e => {
   if(e.target.id !== "restoreIn" || !e.target.files[0]) return;
   try{
     const obj = JSON.parse(await e.target.files[0].text());
     if(obj?.app !== "truecost" || typeof obj.data !== "object") throw 0;
-    const all = { ...Store.readAll(), ...obj.data };
-    Store.writeAll(all); await loadState(); render();
-    toast(`Backup importado: ${state.projects.length} orçamento(s).`);
-  }catch{ toast("Esse arquivo não é um backup do TrueCost."); }
+    for(const [k, v] of Object.entries(obj.data)) if(k === "settings" || k === "pricebook" || k.startsWith("p_")) await Store.put(k, v);
+    await loadState(); render();
+    toast(t("backupOk", { n:state.projects.length }));
+  }catch{ toast(t("backupBad")); }
   e.target.value = "";
 });
 document.addEventListener("submit", e => {
   if(e.target.id === "keyform"){
     e.preventDefault();
     const v = $("#apikey").value.trim();
-    if(!/^sk-ant-/.test(v)){ state.keyStatus = { ok:false, msg:"A chave começa com sk-ant-. Copie de novo do console." }; render(); return; }
-    try{ localStorage.setItem(KEY_LS, v); }catch{ toast("Este navegador bloqueou o salvamento."); return; }
-    state.keyStatus = { ok:true, msg:"Chave salva neste aparelho. Toque em Testar para conferir." };
+    if(!/^sk-ant-/.test(v)){ state.keyStatus = { ok:false, msg:t("keyBadFormat") }; render(); return; }
+    try{ localStorage.setItem(KEY_LS, v); }catch{ toast(t("keyBlocked")); return; }
+    state.keyStatus = { ok:true, msg:t("keySaved") };
     initAI(); render(); return;
   }
   if(e.target.id !== "pbform") return; e.preventDefault();
   const name = $("#pb-n").value.trim(), unit = $("#pb-u").value.trim(), price = num($("#pb-p").value), cat = $("#pb-c").value.trim();
   if(!name || !unit) return;
-  state.pricebook.unshift({ name, unit, price, cat }); savePricebook(); render(); toast("Preço adicionado."); $("#pb-n")?.focus();
+  state.pricebook.unshift({ name, unit, price, cat }); savePricebook(); render(); toast(t("priceAdded")); $("#pb-n")?.focus();
 });
 
-/* price-book picker (inline sheet) */
+/* price-list picker (inline sheet) */
 function openPicker(){
   closePicker();
   const sh = document.createElement("div"); sh.id = "picker"; sh.className = "card";
   sh.style.cssText = "position:fixed;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:calc(76px + env(safe-area-inset-bottom,0px));max-width:568px;margin:0 auto;max-height:55vh;overflow:auto;z-index:15;box-shadow:0 10px 40px rgba(0,0,0,.25)";
-  sh.innerHTML = `<div class="row" style="padding:12px 16px;border-bottom:1px solid var(--line)"><b class="grow">Adicionar da minha tabela</b><button class="btn ghost" data-act="closepick">Fechar</button></div>` +
-    state.pricebook.map((p, i) => `<button class="pb-row" style="width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left" data-act="pick" data-i="${i}"><span>${esc(p.name)}<br><span class="small muted">por ${esc(p.unit)}</span></span><span class="num">${money(p.price)}</span></button>`).join("");
+  sh.innerHTML = `<div class="row" style="padding:12px 16px;border-bottom:1px solid var(--line)"><b class="grow">${t("pickT")}</b><button class="btn ghost" data-act="closepick">${t("close")}</button></div>` +
+    state.pricebook.map((p, i) => `<button class="pb-row" style="width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left" data-act="pick" data-i="${i}"><span>${esc(p.name)}<br><span class="small muted">${esc(t("per", { u:p.unit }))}</span></span><span class="num">${money(p.price)}</span></button>`).join("");
   document.body.appendChild(sh);
 }
 function closePicker(){ document.getElementById("picker")?.remove(); }
@@ -989,14 +1311,34 @@ function closePicker(){ document.getElementById("picker")?.remove(); }
 /* ---------- boot ---------- */
 async function loadState(){
   const all = await Store.loadAll();
-  if(all.settings) state.settings = { ...DEFAULT_SETTINGS, ...all.settings };
+  // Projects made before currency was stored per project were priced in the v1 settings currency (BRL by default).
+  const legacyCurrency = all.settings?.legacyCurrency || (all.settings?.v ? "USD" : (all.settings?.currency || "BRL"));
+  if(all.settings){
+    const s = { ...DEFAULT_SETTINGS, ...all.settings };
+    if(!all.settings.v){   // v1 settings were Brazil-first: move them to the US defaults once
+      s.v = 2; s.legacyCurrency = all.settings.currency || "BRL"; s.currency = "USD"; s.units = "imperial";
+      if(!all.settings.lang) s.lang = state.settings.lang;
+      if(all.settings.region === "São Paulo, SP") s.region = "";
+      if(all.settings.laborRate === 45) s.laborRate = 65;
+      Store.put("settings", s);
+    }
+    if(s.units === "métrico") s.units = "metric";
+    state.settings = s;
+  }
   if(all.pricebook?.items) state.pricebook = all.pricebook.items;
-  state.projects = Object.keys(all).filter(k => k.startsWith("p_")).map(k => all[k]);
+  state.projects = Object.keys(all).filter(k => k.startsWith("p_")).map(k => {
+    const p = all[k];
+    if(!p.currency){ p.currency = legacyCurrency; Store.put(k, p); }   // persist once so later loads don't guess
+    return p;
+  });
+  try{ localStorage.setItem("truecost.lang", state.settings.lang); }catch{}
 }
 async function boot(){
+  render();
   initAI();
+  await Store.init();
   try{ await loadState(); }
-  catch(e){ console.warn(e); toast("Não consegui carregar seus orçamentos agora."); }
+  catch(e){ console.warn(e); toast(t("loadFail")); }
   state.loaded = true;
   render();
 }
