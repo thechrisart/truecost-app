@@ -1,12 +1,21 @@
 /* TrueCost offline cache.
    The page itself is network-first (so updates arrive when online, cached copy when offline);
    pinned libraries and fonts are cache-first. WebLLM keeps the model weights in its own caches. */
-const CACHE = "truecost-v1";
+const CACHE = "truecost-v2";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
+// Libraries the app imports at run time; stored up front so on-device AI and PDF work offline from the first install.
+const LIBS = [
+  "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.86/+esm",
+  "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js",
+];
 const CDN = /^https:\/\/(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//;
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(async c => {
+    await c.addAll(SHELL);
+    await Promise.all(LIBS.map(u => c.add(u).catch(() => {})));   // a slow CDN must not block the install
+  }).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys()
