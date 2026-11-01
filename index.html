@@ -1,0 +1,1007 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TrueCost</title>
+<meta name="description" content="Orçamentos de obras e reformas a partir de fotos com IA.">
+<meta name="theme-color" content="#16202B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TrueCost">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: phone-first app shell — sticky top bar, one scrolling column (max 600px), bottom tab bar. Feels like a takeoff sheet: ruled rows, mono figures. */
+:root{
+  --bg:#EEF0F2; --surface:#FFFFFF; --sunk:#E3E7EB; --line:#D3D9DF;
+  --ink:#16202B; --muted:#5B6773; --faint:#8994A0;
+  --accent:#1F55C7; --accent-ink:#FFFFFF; --accent-soft:#E2EAFB;
+  --mark:#F5C518; --mark-ink:#1B1600;
+  --good:#1D7A4C; --warn:#A86200; --bad:#B42318;
+  --mat:#1F55C7; --lab:#0E8A7D; --oth:#9A6A00;
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --chrome:#16202B; --chrome-ink:#EEF0F2; --chrome-line:transparent; --hl:var(--mark);
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F151C; --surface:#18212B; --sunk:#111922; --line:#2A3542;
+  --ink:#E7ECF1; --muted:#9AA6B2; --faint:#6B7784;
+  --accent:#6E9BFF; --accent-ink:#0B1220; --accent-soft:#1C2A45;
+  --mark:#F5C518; --mark-ink:#1B1600;
+  --good:#4CC38A; --warn:#E3A33B; --bad:#FF7A6E;
+  --mat:#6E9BFF; --lab:#38C5B4; --oth:#E0B341; --chrome:#070B10; --chrome-ink:#E7ECF1; --chrome-line:#2A3542; --hl:rgba(245,197,24,.38); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F151C; --surface:#18212B; --sunk:#111922; --line:#2A3542;
+  --ink:#E7ECF1; --muted:#9AA6B2; --faint:#6B7784;
+  --accent:#6E9BFF; --accent-ink:#0B1220; --accent-soft:#1C2A45;
+  --mark:#F5C518; --mark-ink:#1B1600;
+  --good:#4CC38A; --warn:#E3A33B; --bad:#FF7A6E;
+  --mat:#6E9BFF; --lab:#38C5B4; --oth:#E0B341; --chrome:#070B10; --chrome-ink:#E7ECF1; --chrome-line:#2A3542; --hl:rgba(245,197,24,.38); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+:root{padding-top:env(safe-area-inset-top,0px)}
+[hidden]{display:none!important}
+img{max-width:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--chrome)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:var(--f-display);font-stretch:85%;text-wrap:balance;margin:0;line-height:1.15}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--chrome);color:var(--chrome-ink);border-bottom:1px solid var(--chrome-line);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px}
+.top-in{max-width:600px;margin:0 auto;display:flex;align-items:center;gap:12px;min-height:32px}
+.brand{font-family:var(--f-display);font-weight:800;font-stretch:80%;font-size:22px;letter-spacing:.01em;display:flex;align-items:center;gap:8px}
+.brand i{display:inline-block;width:14px;height:14px;background:var(--mark);border-radius:2px;transform:rotate(45deg)}
+.top .back{background:none;border:0;padding:4px 6px 4px 0;font-size:15px;display:flex;align-items:center;gap:4px;color:inherit}
+.top .ttl{font-family:var(--f-display);font-weight:700;font-stretch:85%;font-size:18px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.store-pill{margin-left:auto;font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.7}
+
+main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 110px}
+.wrap{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+
+/* tab bar */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
+.tabs-in{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tab{background:none;border:0;padding:10px 4px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+.tab svg{width:22px;height:22px}
+.tab[aria-current="page"]{color:var(--accent);font-weight:600}
+.tab.cam{color:var(--ink)}
+.tab.cam .dot{width:44px;height:44px;margin-top:-22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;box-shadow:0 0 0 4px var(--surface)}
+
+/* generic */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.pad{padding:16px}
+.eyebrow{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;align-items:center;gap:10px}
+.grow{flex:1;min-width:0}
+.stack{display:flex;flex-direction:column;gap:12px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.big{padding:14px 18px;font-size:16px;width:100%}
+.btn.ghost{background:none;border-color:transparent;color:var(--accent);padding-inline:6px}
+.btn.danger{color:var(--bad)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn svg{width:18px;height:18px}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted);font-weight:500}
+.in{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:15px}
+textarea.in{min-height:96px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:420px){.grid2{grid-template-columns:1fr}}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13.5px}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.badge{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;padding:2px 7px;border-radius:4px;background:var(--sunk);color:var(--muted)}
+.badge.ex{background:var(--mark);color:var(--mark-ink)}
+.note{border-left:3px solid var(--warn);background:var(--surface);padding:10px 12px;border-radius:0 8px 8px 0;font-size:13.5px}
+.empty{text-align:center;padding:28px 16px;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;z-index:20;max-width:calc(100% - 32px)}
+
+/* hero on home */
+.hero{background:var(--chrome);color:var(--chrome-ink);border:1px solid var(--chrome-line);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
+.hero h1{font-size:30px;font-weight:800;font-stretch:78%;letter-spacing:-.005em}
+.hero h1 b{background:var(--mark);color:var(--mark-ink);padding:0 6px}
+.hero p{margin:0;opacity:.8;max-width:42ch}
+.hero .ruler{position:absolute;right:-6px;top:0;bottom:0;width:26px;background:repeating-linear-gradient(to bottom,var(--mark) 0 2px,transparent 2px 10px);opacity:.55;mask:linear-gradient(to left,#000 40%,transparent)}
+.hero .btn.primary{background:var(--mark);border-color:var(--mark);color:var(--mark-ink);align-self:flex-start}
+
+/* project list */
+.plist{display:flex;flex-direction:column;gap:10px}
+.pitem{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:10px;text-align:left;width:100%}
+.thumb{width:64px;height:64px;border-radius:8px;background:var(--sunk) center/cover no-repeat;display:grid;place-items:center;color:var(--faint)}
+.pitem .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pitem .tot{font-family:var(--f-mono);font-weight:600;font-size:15px;text-align:right}
+
+/* photos */
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.ph{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--sunk);max-width:100%}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph .x{position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:15px;line-height:1}
+.addph{aspect-ratio:1;border:1.5px dashed var(--line);border-radius:8px;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12.5px;color:var(--muted);font-weight:600}
+.addph svg{width:26px;height:26px;color:var(--accent)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* steps */
+.steps{display:flex;gap:6px}
+.steps span{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.steps span.on{background:var(--accent)}
+
+/* thinking */
+.think{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.scan{width:100%;height:6px;border-radius:3px;background:var(--sunk);overflow:hidden;position:relative}
+.scan::after{content:"";position:absolute;inset:0;width:35%;background:var(--accent);border-radius:3px;animation:scan 1.4s ease-in-out infinite}
+@keyframes scan{0%{transform:translateX(-100%)}100%{transform:translateX(290%)}}
+@media (prefers-reduced-motion:reduce){.scan::after{animation:none;width:100%;opacity:.4}}
+.stream{font-family:var(--f-mono);font-size:11.5px;color:var(--faint);max-height:90px;overflow:hidden;white-space:pre-wrap;word-break:break-all;mask:linear-gradient(to top,#000 60%,transparent)}
+
+/* estimate */
+.total{display:flex;flex-direction:column;gap:12px}
+.total .big{font-family:var(--f-mono);font-size:34px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+.total .big .hl{background:linear-gradient(transparent 58%,var(--hl) 58% 92%,transparent 92%);padding:0 2px}
+.bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--sunk)}
+.bar i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend b{width:10px;height:10px;border-radius:2px;display:inline-block}
+.grp{overflow:hidden}
+.grp-h{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--sunk);border-bottom:1px solid var(--line)}
+.grp-h h3{font-size:17px;font-weight:700;flex:1;min-width:0}
+.grp-h .num{font-weight:600}
+.kind{padding:10px 16px 2px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.it{display:grid;grid-template-columns:4px 1fr auto;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);align-items:start;cursor:pointer;background:none;border-left:0;border-right:0;border-top:0;width:100%;text-align:left}
+.it:last-child{border-bottom:0}
+.it .k{width:4px;align-self:stretch;border-radius:2px}
+.it .nm{font-weight:500}
+.it .sub{font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+.it .amt{font-family:var(--f-mono);font-weight:600;white-space:nowrap}
+.edit{padding:12px 16px;background:var(--accent-soft);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.edit .grid3{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px}
+.edit .in{padding:8px 10px;font-size:14px}
+.adj{display:flex;flex-direction:column}
+.adj .r{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.adj .r:last-child{border-bottom:0}
+.adj .r .in{width:76px;text-align:right;padding:6px 8px}
+.adj .r .num{min-width:110px;text-align:right}
+.adj .r.tt{font-weight:700;border-top:2px solid var(--ink);border-bottom:0;margin-top:4px}
+ul.clean{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.ask{display:flex;gap:8px;align-items:flex-end}
+.ask textarea{min-height:46px;flex:1}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.msgbox{white-space:pre-wrap;font-size:14px;background:var(--sunk);border-radius:8px;padding:12px;user-select:text}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--bad);border-radius:8px;padding:10px 12px}
+.pb-row{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);align-items:center}
+.pb-row:last-child{border-bottom:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:8px 12px;font-size:13.5px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.meas{display:grid;grid-template-columns:1fr 90px 64px;gap:8px;align-items:center}
+.meas .in{padding:7px 9px;font-size:14px}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in" id="topbar"></div></header>
+<main><div class="wrap" id="view"></div></main>
+<nav class="tabs" aria-label="Navegação"><div class="tabs-in" id="tabs"></div></nav>
+<input type="file" id="camIn" accept="image/*" capture="environment" class="vh" aria-label="Tirar foto">
+<input type="file" id="galIn" accept="image/*" multiple class="vh" aria-label="Escolher fotos">
+
+<script>
+(() => {
+"use strict";
+/* ---------- icons ---------- */
+const I = {
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>',
+  cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l2-3h6l2 3h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="4"/></svg>',
+  img:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>',
+  tag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="8" cy="8" r="1.5"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  back:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+  spark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+};
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+const num = v => { const n = typeof v === "number" ? v : parseFloat(String(v ?? "").replace(/\s/g,"").replace(/\.(?=\d{3}(\D|$))/g,"").replace(",", ".")); return isFinite(n) ? n : 0; };
+const clone = o => JSON.parse(JSON.stringify(o));
+let toastT;
+function toast(msg){ let t = $(".toast"); if(!t){ t = document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); document.body.appendChild(t);} t.textContent = msg; t.hidden=false; clearTimeout(toastT); toastT = setTimeout(()=>t.hidden=true, 2600); }
+const CUR = { BRL:"pt-BR", USD:"en-US", EUR:"pt-PT" };
+function money(v, s = state.settings){ try { return new Intl.NumberFormat(CUR[s.currency]||"pt-BR",{style:"currency",currency:s.currency||"BRL"}).format(v||0);} catch { return (v||0).toFixed(2); } }
+const fmtDate = ts => new Date(ts).toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"});
+
+/* ---------- defaults ---------- */
+const DEFAULT_SETTINGS = { currency:"BRL", region:"São Paulo, SP", units:"métrico", laborRate:45, contingency:10, markup:20, tax:0, company:"", tier:"default" };
+const KIND = { material:{label:"Materiais", color:"var(--mat)"}, labor:{label:"Mão de obra", color:"var(--lab)"}, other:{label:"Outros", color:"var(--oth)"} };
+
+/* Example shown while there are no saved projects. Clearly marked as an example. */
+const EXAMPLE = {
+  id:"exemplo", example:true, name:"Pintura de sala e cozinha", createdAt:Date.now(), updatedAt:Date.now(),
+  description:"Repintar paredes e teto da sala (4,2 × 3,6 m) e cozinha, cor branco gelo. Paredes com pequenas trincas.",
+  location:"São Paulo, SP", thumbs:[],
+  adj:{contingency:10, markup:20, tax:0},
+  estimate:{
+    scope:"Preparação, correção de trincas e pintura de paredes e teto (≈ 78 m²) em sala e cozinha, duas demãos, acabamento fosco.",
+    groups:[
+      {name:"Preparação", items:[
+        {kind:"material",name:"Massa corrida PVA 25 kg",qty:1,unit:"balde",unitPrice:89.9},
+        {kind:"material",name:"Lixa 150/220 + fita crepe",qty:1,unit:"kit",unitPrice:42},
+        {kind:"material",name:"Lona plástica 4×5 m",qty:2,unit:"un",unitPrice:18.5},
+        {kind:"labor",name:"Proteção, lixamento e correção de trincas",qty:8,unit:"h",unitPrice:45}]},
+      {name:"Pintura", items:[
+        {kind:"material",name:"Tinta acrílica fosca premium 18 L",qty:2,unit:"lata",unitPrice:389.9},
+        {kind:"material",name:"Selador acrílico 18 L",qty:1,unit:"lata",unitPrice:159},
+        {kind:"material",name:"Rolo de lã 23 cm + bandeja + trincha",qty:1,unit:"kit",unitPrice:64.9},
+        {kind:"labor",name:"Pintura paredes e teto (2 demãos)",qty:78,unit:"m²",unitPrice:18}]},
+      {name:"Encerramento", items:[
+        {kind:"other",name:"Limpeza final e descarte de resíduos",qty:1,unit:"vb",unitPrice:120}]}
+    ],
+    assumptions:["Pé-direito de 2,70 m","Paredes sem infiltração ativa","Móveis afastados pelo cliente"],
+    exclusions:["Pintura de portas e rodapés","Reparo de reboco solto"],
+    durationDays:4, crew:"1 pintor + 1 ajudante", confidence:"média", rangePct:12,
+    upsells:[{name:"Pintura de portas (2 un.)",price:380},{name:"Textura em parede de destaque",price:650}]
+  }
+};
+
+/* ---------- state ---------- */
+const state = {
+  tab:"home", route:{name:"home"}, settings:{...DEFAULT_SETTINGS}, pricebook:[], projects:[],
+  loaded:false, storeMode:"local", sample:null, imgLimits:null,
+  draft:null,           // new-estimate wizard
+  editing:null,         // {gi,ii} item being edited
+  confirmDelete:false, busy:null, clientMsg:null,
+};
+
+/* ---------- storage: this browser (localStorage), with JSON backup ---------- */
+const LS_KEY = "truecost";
+const Store = {
+  readAll(){ try{ return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); }catch{ return {}; } },
+  writeAll(all){
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(all)); }
+    catch(e){ toast(e?.name === "QuotaExceededError" ? "Armazenamento do navegador cheio. Exporte um backup e exclua projetos antigos." : "Não foi possível salvar agora."); }
+  },
+  async loadAll(){ return this.readAll(); },
+  put(id, data){ const all = this.readAll(); all[id] = data; this.writeAll(all); },
+  del(id){ const all = this.readAll(); delete all[id]; this.writeAll(all); }
+};
+const saveTimers = {};
+function saveProject(p, now = false){
+  p.updatedAt = Date.now();
+  clearTimeout(saveTimers[p.id]);
+  const go = () => Store.put("p_" + p.id, p);
+  if(now) return go();
+  saveTimers[p.id] = setTimeout(go, 700);
+}
+const saveSettings = () => Store.put("settings", state.settings);
+const savePricebook = () => Store.put("pricebook", { items: state.pricebook });
+
+/* ---------- AI: Claude API called from the browser with the user's own key ---------- */
+const SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.135.0/+esm";
+const MODEL = "claude-opus-5-5";
+const EFFORT = { quick:"low", default:"medium", complex:"high" };
+const KEY_LS = "truecost.apikey";
+const getKey = () => { try{ return localStorage.getItem(KEY_LS) || ""; }catch{ return ""; } };
+let sdkPromise = null;
+const loadSDK = () => (sdkPromise ||= import(SDK_URL).then(m => m.default).catch(e => { sdkPromise = null; throw { code:"sdk_load" }; }));
+
+async function toImageBlock(blob){
+  const data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.onerror = rej; r.readAsDataURL(blob); });
+  return { type:"image", source:{ type:"base64", media_type: blob.type || "image/jpeg", data } };
+}
+function mapErr(Anthropic, e){
+  if(e?.code) return e;
+  if(e instanceof Anthropic.APIUserAbortError) return { code:"cancelled" };
+  if(e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) return { code:"bad_key" };
+  if(e instanceof Anthropic.RateLimitError) return { code:"rate_limited" };
+  if(e instanceof Anthropic.BadRequestError) return { code:"bad_request", message: e.message };
+  if(e instanceof Anthropic.APIConnectionError) return { code:"network" };
+  if(e instanceof Anthropic.InternalServerError) return { code:"overloaded" };
+  return { code:"upstream_error", message: e?.message };
+}
+/* Same call shape the rest of the app uses: ask(prompt, {images, onText, signal, modelTier}) -> {text}; ask.json(...) -> value */
+async function ask(prompt, opts = {}){
+  const apiKey = getKey(); if(!apiKey) throw { code:"no_key" };
+  const Anthropic = await loadSDK();
+  const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+  const imgs = opts.images ? [].concat(opts.images) : [];
+  const content = [...await Promise.all(imgs.map(toImageBlock)), { type:"text", text: prompt }];
+  const run = async (withFallback) => {
+    const params = {
+      model: MODEL, max_tokens: 32000,
+      thinking: { type:"adaptive" },
+      output_config: { effort: EFFORT[opts.modelTier] || "medium" },
+      messages: [{ role:"user", content }]
+    };
+    // On a safety decline the API re-runs the request on a fallback model instead of failing.
+    if(withFallback) Object.assign(params, { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" });
+    const stream = client.beta.messages.stream(params, { signal: opts.signal });
+    let text = "";
+    stream.on("text", d => { text += d; opts.onText?.({ text, delta:d }); });
+    return stream.finalMessage();
+  };
+  try{
+    let msg;
+    try{ msg = await run(true); }
+    catch(e){ if(e instanceof Anthropic.BadRequestError && /fallback/i.test(e.message || "")) msg = await run(false); else throw e; }
+    if(msg.stop_reason === "refusal") throw { code:"refused" };
+    const out = msg.content.filter(b => b.type === "text").map(b => b.text).join("");
+    if(!out.trim()) throw { code:"empty_completion" };
+    return { text: out, truncated: msg.stop_reason === "max_tokens" };
+  }catch(e){ throw mapErr(Anthropic, e); }
+}
+function parseJSON(text){
+  const tries = [text, (text.match(/```(?:json)?\s*([\s\S]*?)```/) || [])[1]];
+  const a = text.search(/[\[{]/), b = Math.max(text.lastIndexOf("}"), text.lastIndexOf("]"));
+  if(a > -1 && b > a) tries.push(text.slice(a, b + 1));
+  for(const t of tries){ if(!t) continue; try{ return JSON.parse(t); }catch{} }
+  throw { code:"invalid_json", text };
+}
+ask.json = async (prompt, opts) => {
+  const { text, truncated } = await ask(prompt + "\n\nResponda apenas com o JSON, sem texto antes ou depois.", opts);
+  if(truncated) throw { code:"invalid_json", text };
+  return parseJSON(text);
+};
+function initAI(){ state.sample = getKey() ? ask : null; state.imgLimits = { maxCount: 6 }; }
+const AI_ERR = {
+  no_key:"Cadastre sua chave da API em Ajustes para usar a IA.", bad_key:"Chave da API inválida ou sem permissão. Confira em Ajustes.",
+  rate_limited:"Limite de uso da API atingido. Aguarde um pouco ou verifique créditos no console da Anthropic.",
+  overloaded:"A API está sobrecarregada agora. Tente de novo em instantes.", network:"Sem conexão com a API. Verifique a internet.",
+  sdk_load:"Não consegui carregar o conector da IA. Verifique a internet.", bad_request:"A API recusou o pedido. Tente com menos fotos ou uma descrição menor.",
+  invalid_json:"A resposta veio incompleta. Tente de novo.", empty_completion:"A IA não respondeu. Tente de novo.",
+  refused:"O pedido foi recusado. Reformule a descrição.", cancelled:"Cancelado."
+};
+const aiErr = e => AI_ERR[e?.code] || "Falha ao falar com a IA. Tente de novo.";
+
+function ctxBlock(){
+  const s = state.settings;
+  const pb = state.pricebook.slice(0, 120).map(p => `- ${p.name} | ${p.unit} | ${p.price}`).join("\n");
+  return `CONTEXTO DO USUÁRIO
+- Região/cidade da obra: ${s.region || "não informada"}
+- Moeda: ${s.currency}. Sistema de medidas: ${s.units}.
+- Valor da hora de mão de obra própria: ${s.laborRate} ${s.currency}/h (use como referência para itens de mão de obra cobrados por hora).
+${pb ? `- TABELA DE PREÇOS PRÓPRIA (nome | unidade | preço). Quando um item corresponder, use EXATAMENTE este preço:\n${pb}` : "- Sem tabela de preços própria: use preços de varejo atuais típicos da região."}`;
+}
+
+const ANALYZE_PROMPT = (d) => `Você é um orçamentista sênior de obras e reformas. Vai receber ${d.nPhotos ? d.nPhotos + " foto(s) do local e " : ""}uma descrição do serviço.
+Sua tarefa agora é só ENTENDER o projeto e listar o que falta saber antes de orçar.
+
+${ctxBlock()}
+
+DESCRIÇÃO DO SERVIÇO (do usuário):
+"""${d.description || "(sem descrição, use as fotos)"}"""
+Local informado: ${d.location || state.settings.region}
+
+Como analisar:
+1. Identifique o tipo de projeto e os ofícios envolvidos (ex.: demolição, alvenaria, elétrica, hidráulica, pintura, piso, marcenaria, gesso).
+2. Observe nas fotos o estado atual, materiais existentes e possíveis complicações (umidade, trincas, fiação aparente, desnível).
+3. Estime medidas usando referências de escala visíveis: porta padrão 2,10 × 0,80 m, tomada a ~0,30 m do piso, interruptor a ~1,10 m, bancada a ~0,90 m, azulejos e pisos de formato conhecido, pé-direito residencial ~2,60–2,80 m. Diga qual referência usou.
+4. Liste perguntas APENAS se a resposta mudar o preço de forma relevante (padrão de acabamento, quem fornece material, medidas que não dá para ver, remoção do existente). Máximo 5. Cada pergunta com 2 a 4 opções curtas.
+
+Responda SOMENTE com JSON neste formato:
+{"title":"nome curto do projeto","projectType":"...","trades":["..."],"summary":"2-3 frases sobre o que será feito",
+"observations":["o que você viu nas fotos que afeta custo"],
+"measurements":[{"label":"Área de parede","value":32.5,"unit":"m²","basis":"estimado pela porta de 2,10 m"}],
+"questions":[{"id":"q1","question":"...","options":["...","..."]}]}
+Escreva tudo em português do Brasil.`;
+
+function estimateSchema(){ return `{"title":"...","scope":"resumo do escopo em 1-2 frases",
+"groups":[{"name":"etapa ou ofício","items":[{"kind":"material|labor|other","name":"descrição específica (marca/especificação quando útil)","qty":2,"unit":"un|m²|m|h|lata|saco|vb|dia","unitPrice":0,"note":"opcional, curta"}]}],
+"assumptions":["premissas adotadas"],"exclusions":["o que não está incluso"],
+"durationDays":3,"crew":"equipe sugerida","confidence":"alta|média|baixa","rangePct":15,
+"upsells":[{"name":"serviço adicional opcional que faz sentido","price":0}]}`; }
+
+const ESTIMATE_RULES = `Regras do orçamento:
+- Divida por etapas/ofícios na ordem de execução. Em cada etapa, liste materiais (kind "material"), mão de obra (kind "labor") e outros custos (kind "other": caçamba, frete, aluguel de equipamento, taxa de descarte).
+- Quantidades realistas: some perdas/sobras usuais (piso +10%, tinta pelo rendimento por demão, argamassa pelo consumo/m²). Arredonde para embalagens vendidas.
+- Preços unitários em ${"${CUR}"}, valores de mercado atuais da região, sem margem de lucro (a margem é aplicada depois pelo app).
+- Mão de obra: por hora (usando o valor/h informado) ou por m²/ponto quando for o costume do ofício.
+- NÃO inclua lucro, imposto nem contingência como itens; o app calcula.
+- rangePct = incerteza do total em % (5 a 40) conforme a qualidade das informações.
+- 0 a 3 upsells relevantes. Português do Brasil.`;
+
+const ESTIMATE_PROMPT = (p, d) => `Você é um orçamentista sênior de obras e reformas. Monte um orçamento detalhado, item a item.
+
+${ctxBlock()}
+
+PROJETO
+Descrição do usuário: """${p.description}"""
+Local: ${p.location}
+Análise inicial: ${JSON.stringify({title:p.analysis?.title, projectType:p.analysis?.projectType, trades:p.analysis?.trades, summary:p.analysis?.summary, observations:p.analysis?.observations})}
+Medidas (confirmadas ou ajustadas pelo usuário): ${JSON.stringify(p.analysis?.measurements || [])}
+Respostas do usuário: ${JSON.stringify(d.answers)}
+${d.nPhotos ? `As ${d.nPhotos} foto(s) anexadas mostram o local.` : ""}
+
+${ESTIMATE_RULES.replace("${CUR}", state.settings.currency)}
+
+Responda SOMENTE com JSON neste formato:
+${estimateSchema()}`;
+
+const REFINE_PROMPT = (p, instr) => `Você é um orçamentista sênior. Ajuste o orçamento abaixo conforme o pedido do usuário e devolva o orçamento COMPLETO atualizado.
+
+${ctxBlock()}
+
+Projeto: ${p.name} — ${p.description}
+ORÇAMENTO ATUAL (JSON):
+${JSON.stringify(p.estimate)}
+
+PEDIDO DO USUÁRIO: """${instr}"""
+
+Mantenha os itens que o pedido não afeta exatamente como estão (mesmos preços e quantidades). ${ESTIMATE_RULES.replace("${CUR}", state.settings.currency)}
+Responda SOMENTE com JSON no formato abaixo, acrescentando "changeNote" (1 frase dizendo o que mudou):
+${estimateSchema()}`;
+
+/* ---------- totals ---------- */
+function totals(p){
+  const e = p.estimate || {groups:[]};
+  const by = {material:0, labor:0, other:0};
+  e.groups.forEach(g => g.items.forEach(it => { by[KIND[it.kind] ? it.kind : "other"] += num(it.qty) * num(it.unitPrice); }));
+  const sub = by.material + by.labor + by.other;
+  const a = p.adj || state.settings;
+  const cont = sub * num(a.contingency) / 100;
+  const mk = (sub + cont) * num(a.markup) / 100;
+  const tax = (sub + cont + mk) * num(a.tax) / 100;
+  const total = sub + cont + mk + tax;
+  const r = num(e.rangePct) / 100;
+  return { by, sub, cont, mk, tax, total, low: total * (1 - r), high: total * (1 + r) };
+}
+const groupSum = g => g.items.reduce((s, it) => s + num(it.qty) * num(it.unitPrice), 0);
+
+function normalizeEstimate(e){
+  if(!e || !Array.isArray(e.groups)) throw {code:"invalid_json"};
+  e.groups = e.groups.filter(g => g && Array.isArray(g.items)).map(g => ({
+    name:String(g.name || "Itens"),
+    items:g.items.map(it => ({ kind: KIND[it.kind] ? it.kind : "other", name:String(it.name || "Item"), qty:num(it.qty) || 1, unit:String(it.unit || "un"), unitPrice:num(it.unitPrice), note: it.note ? String(it.note) : "" }))
+  }));
+  ["assumptions","exclusions"].forEach(k => e[k] = Array.isArray(e[k]) ? e[k].map(String) : []);
+  e.upsells = Array.isArray(e.upsells) ? e.upsells.map(u => ({name:String(u.name||""), price:num(u.price)})).filter(u => u.name) : [];
+  e.rangePct = Math.min(40, Math.max(5, num(e.rangePct) || 15));
+  return e;
+}
+
+/* ---------- images ---------- */
+function loadImg(file){ return new Promise((res, rej) => { const u = URL.createObjectURL(file); const im = new Image(); im.onload = () => res({im, u}); im.onerror = rej; im.src = u; }); }
+async function shrink(file, max, q){
+  const {im, u} = await loadImg(file);
+  const k = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight));
+  const c = document.createElement("canvas"); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+  c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+  URL.revokeObjectURL(u);
+  const blob = await new Promise(r => c.toBlob(r, "image/jpeg", q));
+  return { blob, dataUrl: max <= 240 ? c.toDataURL("image/jpeg", q) : null };
+}
+async function addFiles(files){
+  const d = state.draft; if(!d) return;
+  const max = state.imgLimits?.maxCount || 6;
+  for(const f of [...files]){
+    if(d.photos.length >= max){ toast(`Máximo de ${max} fotos por orçamento.`); break; }
+    if(!/^image\//.test(f.type)) continue;
+    try{
+      const big = await shrink(f, 1600, .85);   // sent to Claude
+      const small = await shrink(f, 200, .6);   // stored with the project
+      d.photos.push({ id:uid(), blob:big.blob, url:URL.createObjectURL(big.blob), thumb:small.dataUrl });
+    }catch{ toast("Não consegui abrir essa imagem."); }
+  }
+  render();
+}
+$("#camIn").addEventListener("change", e => { addFiles(e.target.files); e.target.value = ""; });
+$("#galIn").addEventListener("change", e => { addFiles(e.target.files); e.target.value = ""; });
+
+/* ---------- navigation ---------- */
+function go(route){
+  state.route = route; state.editing = null; state.confirmDelete = false; state.clientMsg = null;
+  if(["home","new","prices","settings"].includes(route.name)) state.tab = route.name;
+  if(route.name === "new" && !state.draft) newDraft();
+  render(); window.scrollTo(0, 0);
+}
+function newDraft(){ state.draft = { step:1, photos:[], description:"", location:state.settings.region, project:null, answers:{}, custom:{} }; }
+const getProject = id => id === "exemplo" ? state.exampleCopy : state.projects.find(p => p.id === id);
+
+/* ---------- render ---------- */
+function render(){
+  renderTop(); renderTabs();
+  const v = $("#view");
+  const r = state.route;
+  if(!state.loaded){ v.innerHTML = `<div class="card pad think"><span class="eyebrow">Carregando seus orçamentos</span><div class="scan"></div></div>`; return; }
+  v.innerHTML = r.name === "home" ? vHome() : r.name === "new" ? vNew() : r.name === "project" ? vProject(getProject(r.id)) : r.name === "prices" ? vPrices() : vSettings();
+  const st = $("#stream"); if(st) st.scrollTop = st.scrollHeight;
+}
+function renderTop(){
+  const r = state.route, t = $("#topbar");
+  if(r.name === "project" || (r.name === "new" && state.draft?.step > 1)){
+    const ttl = r.name === "project" ? (getProject(r.id)?.name || "Orçamento") : "Novo orçamento";
+    t.innerHTML = `<button class="back" data-act="back">${I.back}<span class="vh">Voltar</span></button><span class="ttl">${esc(ttl)}</span>`;
+  } else {
+    t.innerHTML = `<span class="brand"><i></i>TrueCost</span><span class="store-pill">${state.storeMode === "db" ? "Salvo na sua conta" : "Salvo neste aparelho"}</span>`;
+  }
+}
+function renderTabs(){
+  const cur = state.tab;
+  const b = (k, ic, lb, cls="") => `<button class="tab ${cls}" data-act="tab" data-k="${k}" ${cur===k?'aria-current="page"':""}>${cls ? `<span class="dot">${ic}</span>` : ic}<span>${lb}</span></button>`;
+  $("#tabs").innerHTML = b("home", I.home, "Projetos") + b("new", I.cam, "Novo", "cam") + b("prices", I.tag, "Meus preços") + b("settings", I.gear, "Ajustes");
+}
+
+function vHome(){
+  const list = [...state.projects].sort((a, b) => b.updatedAt - a.updatedAt);
+  const rows = (list.length ? list : [EXAMPLE]).map(p => {
+    const t = p.estimate ? totals(p) : null;
+    const th = p.thumbs?.[0];
+    return `<button class="card pitem" data-act="open" data-id="${esc(p.id)}">
+      <span class="thumb" style="${th ? `background-image:url('${th}')` : ""}">${th ? "" : I.img.replace("<svg", '<svg width="24" height="24"')}</span>
+      <span class="grow"><span class="nm" style="display:block">${esc(p.name)}</span>
+        <span class="small muted">${p.example ? '<span class="badge ex">Exemplo</span> ' : ""}${fmtDate(p.updatedAt)}${p.estimate ? "" : " · aguardando perguntas"}</span></span>
+      <span class="tot">${t ? money(t.total) : "—"}</span></button>`;
+  }).join("");
+  return `
+  <section class="hero"><span class="ruler" aria-hidden="true"></span>
+    <h1>Foto da obra.<br><b>Custo real</b> em minutos.</h1>
+    <p>Tire fotos do ambiente, descreva o serviço e receba materiais, mão de obra e total, item por item, com os seus preços.</p>
+    <button class="btn primary" data-act="tab" data-k="new">${I.cam} Novo orçamento</button>
+  </section>
+  <div class="row"><h2 style="font-size:20px" class="grow">Projetos</h2><span class="small muted">${list.length ? list.length + (list.length === 1 ? " orçamento" : " orçamentos") : ""}</span></div>
+  <div class="plist">${rows}</div>
+  ${list.length ? "" : `<p class="small muted" style="margin:0">O projeto acima é um exemplo para você ver o resultado. Seus orçamentos aparecem aqui assim que você criar o primeiro.</p>`}`;
+}
+
+function aiBanner(){
+  if(state.sample) return "";
+  return `<div class="note stack" style="gap:8px">Para a IA funcionar, cadastre sua chave da API da Anthropic. Ela fica salva só neste aparelho.<button class="btn" data-act="tab" data-k="settings" style="align-self:flex-start">Cadastrar chave em Ajustes</button></div>`;
+}
+
+function vNew(){
+  const d = state.draft;
+  const steps = `<div class="steps" aria-label="Etapa ${d.step} de 3">${[1,2,3].map(i => `<span class="${i <= d.step ? "on" : ""}"></span>`).join("")}</div>`;
+  if(state.busy) return steps + vBusy();
+  if(d.step === 1){
+    const max = state.imgLimits?.maxCount || 6;
+    const ph = d.photos.map(p => `<div class="ph"><img src="${p.url}" alt="Foto do local"><button class="x" data-act="rmph" data-id="${p.id}" aria-label="Remover foto">×</button></div>`).join("");
+    const canImg = !state.sample || !!state.imgLimits;
+    return `${steps}
+    <div><span class="eyebrow">Etapa 1 · Fotos e descrição</span><h1 style="font-size:26px;margin-top:4px">O que vamos orçar?</h1></div>
+    ${aiBanner()}
+    ${canImg ? `<div class="stack"><div class="photos">${ph}
+      ${d.photos.length < max ? `<button class="addph" data-act="cam">${I.cam}Câmera</button><button class="addph" data-act="gal">${I.img}Galeria</button>` : ""}</div>
+      <span class="small muted">Fotografe o ambiente inteiro e os detalhes que afetam o custo. Inclua uma porta ou tomada no quadro para dar escala. Até ${max} fotos.</span></div>`
+      : `<div class="note">Esta visualização não envia fotos para o Claude. Descreva o serviço com as medidas.</div>`}
+    <label class="f">Descrição do serviço
+      <textarea class="in" id="desc" placeholder="Ex.: trocar piso da cozinha por porcelanato 60×60, remover o antigo, cozinha de 3 × 4 m">${esc(d.description)}</textarea></label>
+    <label class="f">Local da obra<input class="in" id="loc" value="${esc(d.location)}" placeholder="Cidade, UF"></label>
+    <button class="btn primary big" data-act="analyze" ${(!d.photos.length && !d.description.trim()) || !state.sample ? "disabled" : ""}>${I.spark} Analisar com IA</button>`;
+  }
+  if(d.step === 2){
+    const a = d.project.analysis;
+    const qs = (a.questions || []).map(q => `<div class="stack" style="gap:8px"><b style="font-weight:600">${esc(q.question)}</b>
+      <div class="chips">${(q.options || []).map(o => `<button class="chip" data-act="ans" data-q="${esc(q.id)}" data-v="${esc(o)}" aria-pressed="${d.answers[q.id] === o}">${esc(o)}</button>`).join("")}</div>
+      <input class="in" data-act="anscustom" data-q="${esc(q.id)}" placeholder="Outra resposta (opcional)" value="${esc(d.custom[q.id] || "")}" style="padding:8px 10px;font-size:14px"></div>`).join("");
+    const ms = (a.measurements || []).map((m, i) => `<div class="meas"><span class="small">${esc(m.label)}${m.basis ? `<br><span class="muted" style="font-size:12px">${esc(m.basis)}</span>` : ""}</span>
+      <input class="in num" inputmode="decimal" data-act="meas" data-i="${i}" value="${esc(m.value)}" aria-label="${esc(m.label)}"><span class="small muted">${esc(m.unit)}</span></div>`).join("");
+    return `${steps}
+    <div><span class="eyebrow">Etapa 2 · Confirme os detalhes</span><h1 style="font-size:26px;margin-top:4px">${esc(a.title || "Projeto")}</h1>
+      <p class="muted" style="margin:6px 0 0">${esc(a.summary || "")}</p></div>
+    ${(a.trades || []).length ? `<div class="chips">${a.trades.map(t => `<span class="badge">${esc(t)}</span>`).join("")}</div>` : ""}
+    ${(a.observations || []).length ? `<div class="card pad stack" style="gap:6px"><span class="eyebrow">O que a IA viu</span><ul class="clean small">${a.observations.map(o => `<li>${esc(o)}</li>`).join("")}</ul></div>` : ""}
+    ${ms ? `<div class="card pad stack"><span class="eyebrow">Medidas estimadas · corrija se souber</span>${ms}</div>` : ""}
+    ${qs ? `<div class="card pad stack" style="gap:18px"><span class="eyebrow">Perguntas que mudam o preço</span>${qs}</div>` : ""}
+    <label class="f">Algo mais a considerar? (opcional)<textarea class="in" id="extra" style="min-height:60px" placeholder="Ex.: cliente já tem o piso; acesso só por escada">${esc(d.extra || "")}</textarea></label>
+    <button class="btn primary big" data-act="estimate">${I.spark} Gerar orçamento</button>`;
+  }
+  return steps;
+}
+function vBusy(){
+  const b = state.busy;
+  return `<div class="card pad think"><span class="eyebrow">${esc(b.label)}</span><div class="scan"></div>
+    <span class="small muted">${b.hasText ? "Escrevendo o resultado…" : "Pensando. Com fotos, pode levar até um minuto."}</span>
+    <div class="stream" id="stream">${esc(b.text || "")}</div>
+    <button class="btn" data-act="stop">Parar</button></div>`;
+}
+
+function vProject(p){
+  if(!p) return `<div class="empty">Projeto não encontrado. <button class="btn ghost" data-act="tab" data-k="home">Voltar</button></div>`;
+  if(!p.estimate){
+    return `<div class="card pad stack"><b>Este projeto ainda não tem orçamento.</b><span class="muted small">A análise foi feita, mas as perguntas não foram respondidas.</span>
+      <button class="btn primary" data-act="resume" data-id="${esc(p.id)}">Continuar</button></div>${dangerZone(p)}`;
+  }
+  const e = p.estimate, t = totals(p), a = p.adj || (p.adj = {contingency:state.settings.contingency, markup:state.settings.markup, tax:state.settings.tax});
+  const pct = v => t.sub ? (v / t.sub * 100).toFixed(1) : 0;
+  if(state.busy) return vBusy();
+  const groups = e.groups.map((g, gi) => {
+    const kinds = ["material","labor","other"].filter(k => g.items.some(it => it.kind === k));
+    const body = kinds.map(k => `<div class="kind">${KIND[k].label}</div>` + g.items.map((it, ii) => it.kind !== k ? "" : itemRow(p, it, gi, ii)).join("")).join("");
+    return `<section class="card grp"><div class="grp-h"><h3>${esc(g.name)}</h3><span class="num">${money(groupSum(g))}</span></div>${body}
+      <div style="padding:8px 12px;display:flex;gap:4px;flex-wrap:wrap"><button class="btn ghost small" data-act="additem" data-g="${gi}">${I.plus} Item</button>
+      ${state.pricebook.length ? `<button class="btn ghost small" data-act="addpb" data-g="${gi}">${I.tag} Da minha tabela</button>` : ""}</div></section>`;
+  }).join("");
+  const th = (p.thumbs || []).map(u => `<div class="ph"><img src="${u}" alt="Foto do local"></div>`).join("");
+  return `
+  ${p.example ? `<div class="note">Exemplo para mostrar como fica um orçamento. Alterações aqui não são salvas.</div>` : ""}
+  <section class="card pad total">
+    <div class="row"><span class="eyebrow grow">Total estimado</span><span class="badge">confiança ${esc(e.confidence || "média")}</span></div>
+    <div class="big"><span class="hl">${money(t.total)}</span></div>
+    <span class="small muted num">faixa provável ${money(t.low)} – ${money(t.high)}</span>
+    <div class="bar" role="img" aria-label="Divisão de custos">${["material","labor","other"].map(k => `<i style="width:${pct(t.by[k])}%;background:${KIND[k].color}"></i>`).join("")}</div>
+    <div class="legend">${["material","labor","other"].map(k => `<span><b style="background:${KIND[k].color}"></b>${KIND[k].label} <span class="num">${money(t.by[k])}</span></span>`).join("")}</div>
+  </section>
+  ${e.changeNote ? `<div class="note" style="border-color:var(--accent)">Última alteração: ${esc(e.changeNote)}</div>` : ""}
+  <section class="stack" style="gap:6px"><span class="eyebrow">Escopo</span><p style="margin:0">${esc(e.scope || p.description)}</p>
+    <span class="small muted">${e.durationDays ? `Prazo estimado: ${esc(e.durationDays)} dia(s)` : ""}${e.crew ? ` · Equipe: ${esc(e.crew)}` : ""}</span></section>
+  ${th ? `<div class="photos">${th}</div>` : ""}
+  ${groups}
+  <button class="btn" data-act="addgroup">${I.plus} Nova etapa</button>
+  <section class="card pad adj">
+    <span class="eyebrow" style="margin-bottom:4px">Fechamento</span>
+    <div class="r"><span class="grow">Custo direto</span><span class="num">${money(t.sub)}</span></div>
+    <div class="r"><label class="grow" for="a-c">Contingência</label><input class="in num" id="a-c" inputmode="decimal" data-act="adj" data-k="contingency" value="${esc(a.contingency)}"><span class="small muted">%</span><span class="num">${money(t.cont)}</span></div>
+    <div class="r"><label class="grow" for="a-m">Margem / lucro</label><input class="in num" id="a-m" inputmode="decimal" data-act="adj" data-k="markup" value="${esc(a.markup)}"><span class="small muted">%</span><span class="num">${money(t.mk)}</span></div>
+    <div class="r"><label class="grow" for="a-t">Impostos</label><input class="in num" id="a-t" inputmode="decimal" data-act="adj" data-k="tax" value="${esc(a.tax)}"><span class="small muted">%</span><span class="num">${money(t.tax)}</span></div>
+    <div class="r tt"><span class="grow">Total</span><span class="num">${money(t.total)}</span></div>
+  </section>
+  ${(e.assumptions.length || e.exclusions.length) ? `<section class="grid2">
+    ${e.assumptions.length ? `<div class="stack" style="gap:6px"><span class="eyebrow">Premissas</span><ul class="clean small">${e.assumptions.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
+    ${e.exclusions.length ? `<div class="stack" style="gap:6px"><span class="eyebrow">Não incluso</span><ul class="clean small">${e.exclusions.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}</section>` : ""}
+  ${e.upsells.length ? `<section class="stack" style="gap:8px"><span class="eyebrow">Adicionais para oferecer</span>${e.upsells.map((u, i) => `<div class="card row" style="padding:10px 12px"><span class="grow small">${esc(u.name)}</span><span class="num small">${money(u.price)}</span><button class="btn ghost small" data-act="upsell" data-i="${i}">Incluir</button></div>`).join("")}</section>` : ""}
+  <section class="card pad stack">
+    <span class="eyebrow">Ajustar com IA</span>
+    <div class="ask"><textarea class="in" id="refine" placeholder="Ex.: trocar para tinta econômica; incluir rodapé de 8 cm; a sala tem 5 × 4 m">${esc(state.refineDraft || "")}</textarea>
+      <button class="btn primary" data-act="refine" ${state.sample && !p.example ? "" : "disabled"} aria-label="Ajustar">${I.spark}</button></div>
+    ${!state.sample ? `<span class="small muted">Cadastre sua chave da API em Ajustes para usar.</span>` : p.example ? `<span class="small muted">Crie um orçamento seu para usar os ajustes por IA.</span>` : ""}
+  </section>
+  <section class="stack">
+    <span class="eyebrow">Enviar e exportar</span>
+    <div class="actions">
+      <button class="btn" data-act="copytext">Copiar orçamento</button>
+      <button class="btn" data-act="clientmsg" ${state.sample ? "" : "disabled"}>Mensagem p/ cliente</button>
+      <button class="btn" data-act="exporthtml">Baixar orçamento</button>
+      <button class="btn" data-act="exportcsv">Baixar planilha</button>
+    </div>
+    ${state.clientMsg ? `<div class="card pad stack"><span class="eyebrow">Mensagem para WhatsApp/e-mail</span>${state.clientMsg.loading ? `<div class="scan"></div>` : `<div class="msgbox" id="msgbox">${esc(state.clientMsg.text)}</div><button class="btn" data-act="copymsg">Copiar mensagem</button>`}</div>` : ""}
+  </section>
+  ${p.example ? "" : `<button class="btn" data-act="dup">Duplicar orçamento</button>${dangerZone(p)}`}`;
+}
+function dangerZone(p){
+  if(p.example) return "";
+  return state.confirmDelete
+    ? `<div class="confirm"><span class="grow small">Excluir “${esc(p.name)}” de vez?</span><button class="btn" data-act="nodel">Cancelar</button><button class="btn danger" data-act="dodel">Excluir</button></div>`
+    : `<button class="btn ghost danger" data-act="askdel" style="align-self:center">Excluir orçamento</button>`;
+}
+function itemRow(p, it, gi, ii){
+  const amt = num(it.qty) * num(it.unitPrice);
+  const open = state.editing && state.editing.gi === gi && state.editing.ii === ii;
+  const row = `<button class="it" data-act="edit" data-g="${gi}" data-i="${ii}" aria-expanded="${open}">
+    <span class="k" style="background:${KIND[it.kind].color}"></span>
+    <span><span class="nm">${esc(it.name)}</span><br><span class="sub">${esc(String(it.qty).replace(".", ","))} ${esc(it.unit)} × ${money(it.unitPrice)}</span>${it.note ? `<br><span class="small muted">${esc(it.note)}</span>` : ""}</span>
+    <span class="amt">${money(amt)}</span></button>`;
+  if(!open) return row;
+  return row + `<div class="edit">
+    <input class="in" data-act="f" data-f="name" value="${esc(it.name)}" aria-label="Descrição">
+    <div class="edit grid3" style="padding:0;background:none;border:0">
+      <label class="f">Qtd<input class="in num" inputmode="decimal" data-act="f" data-f="qty" value="${esc(it.qty)}"></label>
+      <label class="f">Unid.<input class="in" data-act="f" data-f="unit" value="${esc(it.unit)}"></label>
+      <label class="f">Preço un.<input class="in num" inputmode="decimal" data-act="f" data-f="unitPrice" value="${esc(it.unitPrice)}"></label></div>
+    <div class="row" style="flex-wrap:wrap"><div class="seg">${Object.keys(KIND).map(k => `<button data-act="kind" data-k="${k}" aria-pressed="${it.kind === k}">${KIND[k].label}</button>`).join("")}</div>
+      <span class="grow"></span><button class="btn ghost small" data-act="topb">Salvar na tabela</button><button class="btn ghost danger small" data-act="rmitem">Remover</button><button class="btn small" data-act="done">OK</button></div></div>`;
+}
+
+function vPrices(){
+  const rows = state.pricebook.map((p, i) => `<div class="pb-row"><span class="grow"><span style="font-weight:500">${esc(p.name)}</span><br><span class="small muted">por ${esc(p.unit)}${p.cat ? " · " + esc(p.cat) : ""}</span></span>
+    <span class="row"><span class="num">${money(p.price)}</span><button class="btn ghost danger small" data-act="pbdel" data-i="${i}" aria-label="Remover ${esc(p.name)}">×</button></span></div>`).join("");
+  return `<div><span class="eyebrow">Meus preços</span><h1 style="font-size:26px;margin-top:4px">Sua tabela manda no preço</h1>
+    <p class="muted" style="margin:6px 0 0">A IA usa estes valores sempre que um item bater com a tabela. Cadastre o que você paga no seu fornecedor e o seu preço de mão de obra por serviço.</p></div>
+  <form class="card pad stack" id="pbform">
+    <label class="f">Item<input class="in" id="pb-n" placeholder="Ex.: Porcelanato 60×60 Portobello" required></label>
+    <div class="grid2"><label class="f">Unidade<input class="in" id="pb-u" placeholder="m²" required></label>
+      <label class="f">Preço (${esc(state.settings.currency)})<input class="in num" id="pb-p" inputmode="decimal" placeholder="89,90" required></label></div>
+    <label class="f">Categoria (opcional)<input class="in" id="pb-c" placeholder="Piso, Elétrica, Mão de obra…"></label>
+    <button class="btn primary" type="submit">${I.plus} Adicionar à tabela</button>
+  </form>
+  ${rows ? `<section class="card">${rows}</section>` : `<div class="empty card">Nenhum preço cadastrado ainda. Dica: ao editar um item num orçamento, toque em “Salvar na tabela”.</div>`}`;
+}
+
+function vSettings(){
+  const s = state.settings;
+  const seg = (k, opts) => `<div class="seg">${opts.map(([v, l]) => `<button type="button" data-act="set" data-k="${k}" data-v="${v}" aria-pressed="${s[k] === v}">${l}</button>`).join("")}</div>`;
+  const key = getKey();
+  return `<div><span class="eyebrow">Ajustes</span><h1 style="font-size:26px;margin-top:4px">Padrões dos orçamentos</h1></div>
+  <section class="card pad stack" id="keybox">
+    <div class="row"><span class="eyebrow grow">Chave da API Anthropic</span><span class="badge" style="${key ? "background:var(--good);color:var(--surface)" : ""}">${key ? "configurada" : "não configurada"}</span></div>
+    ${key ? `<div class="row"><span class="num grow small">${esc(key.slice(0, 10))}…${esc(key.slice(-4))}</span>
+        <button class="btn small" data-act="testkey">Testar</button><button class="btn ghost danger small" data-act="rmkey">Remover</button></div>`
+      : `<form class="ask" id="keyform"><input class="in" id="apikey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-..." aria-label="Chave da API"><button class="btn primary" type="submit">Salvar</button></form>`}
+    ${state.keyStatus ? `<span class="small" style="color:${state.keyStatus.ok ? "var(--good)" : "var(--bad)"}">${esc(state.keyStatus.msg)}</span>` : ""}
+    <span class="small muted">Crie a chave em <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--accent)">console.anthropic.com</a> e coloque créditos na conta. A chave fica salva só neste navegador e vai direto para a API da Anthropic. Defina um limite de gasto no console por segurança. Cada orçamento com fotos custa em geral poucos centavos de dólar.</span>
+  </section>
+  <section class="card pad stack">
+    <label class="f">Seu nome ou empresa (aparece no orçamento)<input class="in" data-act="setin" data-k="company" value="${esc(s.company)}" placeholder="Ex.: Silva Reformas"></label>
+    <label class="f">Região de preços<input class="in" data-act="setin" data-k="region" value="${esc(s.region)}" placeholder="Cidade, UF"></label>
+    <label class="f">Valor da sua hora de mão de obra (${esc(s.currency)})<input class="in num" inputmode="decimal" data-act="setin" data-k="laborRate" value="${esc(s.laborRate)}"></label>
+    <div class="f" style="font-size:13px;color:var(--muted)">Moeda ${seg("currency", [["BRL","R$"],["USD","US$"],["EUR","€"]])}</div>
+    <div class="f" style="font-size:13px;color:var(--muted)">Medidas ${seg("units", [["métrico","Métrico"],["imperial","Imperial"]])}</div>
+  </section>
+  <section class="card pad stack"><span class="eyebrow">Fechamento padrão para novos orçamentos</span>
+    <div class="grid2"><label class="f">Contingência %<input class="in num" inputmode="decimal" data-act="setin" data-k="contingency" value="${esc(s.contingency)}"></label>
+      <label class="f">Margem / lucro %<input class="in num" inputmode="decimal" data-act="setin" data-k="markup" value="${esc(s.markup)}"></label>
+      <label class="f">Impostos %<input class="in num" inputmode="decimal" data-act="setin" data-k="tax" value="${esc(s.tax)}"></label></div></section>
+  <section class="card pad stack"><span class="eyebrow">Precisão da IA</span>
+    ${seg("tier", [["quick","Rápida"],["default","Padrão"],["complex","Máxima"]])}
+    <span class="small muted">Todas usam o Claude Opus 5.5. “Máxima” pensa mais e erra menos em obras grandes, mas demora mais e custa mais por orçamento; “Rápida” é a mais barata.</span></section>
+  <section class="card pad stack"><span class="eyebrow">Backup</span>
+    <span class="small muted">Seus orçamentos, preços e ajustes ficam salvos só neste navegador. Exporte um backup de vez em quando, ou para passar para outro aparelho. A chave da API não vai no backup.</span>
+    <div class="actions"><button class="btn" data-act="backup">Exportar backup</button><button class="btn" data-act="restore">Importar backup</button></div>
+    <input type="file" id="restoreIn" accept="application/json,.json" class="vh" aria-label="Arquivo de backup">
+  </section>`;
+}
+
+/* ---------- AI flows ---------- */
+let ctl = null;
+async function runAI(label, prompt, opts){
+  ctl = new AbortController();
+  state.busy = { label, text:"", hasText:false }; render();
+  try{
+    return await state.sample.json(prompt, { ...opts, signal: ctl.signal, modelTier: state.settings.tier || "default",
+      onText: ({text}) => { if(!state.busy) return; state.busy.text = text.slice(-600); state.busy.hasText = true; const st = $("#stream"); if(st){ st.textContent = state.busy.text; st.scrollTop = st.scrollHeight; } else render(); } });
+  } finally { state.busy = null; }
+}
+
+async function doAnalyze(){
+  const d = state.draft;
+  d.description = $("#desc").value.trim(); d.location = $("#loc").value.trim();
+  const imgs = d.photos.map(p => p.blob);
+  try{
+    const a = await runAI("Analisando fotos e descrição", ANALYZE_PROMPT({ nPhotos: imgs.length, description: d.description, location: d.location }), imgs.length ? { images: imgs } : {});
+    if(!a || typeof a !== "object") throw {code:"invalid_json"};
+    a.questions = (Array.isArray(a.questions) ? a.questions : []).slice(0, 5).map((q, i) => ({ id: String(q.id || "q" + (i+1)), question: String(q.question || ""), options: Array.isArray(q.options) ? q.options.map(String).slice(0, 4) : [] })).filter(q => q.question);
+    a.measurements = (Array.isArray(a.measurements) ? a.measurements : []).map(m => ({ label:String(m.label||""), value:m.value, unit:String(m.unit||""), basis: m.basis ? String(m.basis) : "" }));
+    const p = { id:uid(), name: a.title || "Novo orçamento", createdAt:Date.now(), updatedAt:Date.now(), description:d.description, location:d.location,
+      thumbs: d.photos.slice(0, 4).map(x => x.thumb).filter(Boolean), analysis:a, estimate:null,
+      adj:{ contingency:state.settings.contingency, markup:state.settings.markup, tax:state.settings.tax } };
+    d.project = p; d.step = 2; d.answers = {}; d.custom = {};
+    state.projects.push(p); saveProject(p, true);
+  }catch(e){ if(e?.code !== "cancelled") toast(aiErr(e)); }
+  render(); window.scrollTo(0, 0);
+}
+
+async function doEstimate(){
+  const d = state.draft, p = d.project;
+  d.extra = $("#extra")?.value.trim() || "";
+  const answers = (p.analysis.questions || []).map(q => ({ pergunta:q.question, resposta: d.custom[q.id]?.trim() || d.answers[q.id] || "não informado" }));
+  if(d.extra) answers.push({ pergunta:"Observações adicionais", resposta:d.extra });
+  p.answers = answers;
+  const imgs = d.photos.map(x => x.blob);
+  try{
+    const e = normalizeEstimate(await runAI("Montando o orçamento item a item", ESTIMATE_PROMPT(p, { answers, nPhotos: imgs.length }), imgs.length ? { images: imgs } : {}));
+    p.estimate = e; if(e.title) p.name = e.title;
+    saveProject(p, true);
+    d.photos.forEach(x => URL.revokeObjectURL(x.url));
+    state.draft = null;
+    go({ name:"project", id:p.id }); state.tab = "home"; renderTabs();
+    return;
+  }catch(err){ if(err?.code !== "cancelled") toast(aiErr(err)); }
+  render();
+}
+
+async function doRefine(p){
+  const instr = $("#refine").value.trim(); if(!instr) return;
+  state.refineDraft = instr;
+  try{
+    const e = normalizeEstimate(await runAI("Ajustando o orçamento", REFINE_PROMPT(p, instr), { cache:false }));
+    p.estimate = e; state.refineDraft = ""; saveProject(p, true); toast("Orçamento atualizado.");
+  }catch(err){ if(err?.code !== "cancelled") toast(aiErr(err)); }
+  render();
+}
+
+async function doClientMsg(p){
+  const t = totals(p);
+  state.clientMsg = { loading:true }; render();
+  const prompt = `Escreva uma mensagem curta e profissional (para WhatsApp) apresentando este orçamento ao cliente. Português do Brasil, tom cordial e direto, sem emojis em excesso, sem inventar dados.
+Quem envia: ${state.settings.company || "(sem nome)"}
+Serviço: ${p.estimate.scope || p.description}
+Total: ${money(t.total)} (faixa ${money(t.low)} a ${money(t.high)})
+Prazo: ${p.estimate.durationDays || "a combinar"} dia(s). Equipe: ${p.estimate.crew || "-"}
+Incluso (etapas): ${p.estimate.groups.map(g => g.name).join(", ")}
+Não incluso: ${p.estimate.exclusions.join("; ") || "-"}
+Termine pedindo confirmação e dizendo que o valor vale por 15 dias. Responda só com o texto da mensagem.`;
+  try{ const { text } = await state.sample(prompt, { modelTier:"quick", cache:false }); state.clientMsg = { text }; }
+  catch(e){ state.clientMsg = null; toast(aiErr(e)); }
+  render();
+}
+
+/* ---------- export ---------- */
+function plainText(p){
+  const t = totals(p), e = p.estimate, L = [];
+  L.push(`ORÇAMENTO — ${p.name}`); if(state.settings.company) L.push(state.settings.company);
+  L.push(`${fmtDate(Date.now())} · ${p.location || ""}`, "", e.scope || p.description, "");
+  e.groups.forEach(g => { L.push(`■ ${g.name} — ${money(groupSum(g))}`); g.items.forEach(it => L.push(`  • ${it.name}: ${String(it.qty).replace(".", ",")} ${it.unit} × ${money(it.unitPrice)} = ${money(num(it.qty)*num(it.unitPrice))}`)); L.push(""); });
+  L.push(`Custo direto: ${money(t.sub)}`);
+  if(t.cont) L.push(`Contingência: ${money(t.cont)}`); if(t.mk) L.push(`Margem: ${money(t.mk)}`); if(t.tax) L.push(`Impostos: ${money(t.tax)}`);
+  L.push(`TOTAL: ${money(t.total)}`, "");
+  if(e.durationDays) L.push(`Prazo estimado: ${e.durationDays} dia(s)`);
+  if(e.exclusions.length) L.push(`Não incluso: ${e.exclusions.join("; ")}`);
+  return L.join("\n");
+}
+function quoteHTML(p){
+  const t = totals(p), e = p.estimate, s = state.settings;
+  const rows = e.groups.map(g => `<tr class="g"><td colspan="4">${esc(g.name)}</td><td>${money(groupSum(g))}</td></tr>` + g.items.map(it => `<tr><td>${esc(it.name)}</td><td>${esc(String(it.qty).replace(".", ","))}</td><td>${esc(it.unit)}</td><td>${money(it.unitPrice)}</td><td>${money(num(it.qty)*num(it.unitPrice))}</td></tr>`).join("")).join("");
+  const adds = [["Custo direto", t.sub], t.cont && ["Contingência", t.cont], t.mk && ["Margem", t.mk], t.tax && ["Impostos", t.tax]].filter(Boolean).map(([l, v]) => `<tr><td colspan="4">${l}</td><td>${money(v)}</td></tr>`).join("");
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Orçamento - ${esc(p.name)}</title>
+<style>body{font:14px/1.5 system-ui,sans-serif;color:#16202B;max-width:780px;margin:32px auto;padding:0 20px}h1{font-size:24px;margin:0}table{width:100%;border-collapse:collapse;margin:20px 0}td{padding:7px 6px;border-bottom:1px solid #D3D9DF;vertical-align:top}td:nth-child(n+2){text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}tr.g td{background:#EEF0F2;font-weight:700}tfoot td{font-weight:600}tr.t td{font-size:18px;border-top:2px solid #16202B}.m{color:#5B6773}</style></head><body>
+<p class="m">${esc(s.company || "")}</p><h1>Orçamento: ${esc(p.name)}</h1><p class="m">${fmtDate(Date.now())} · ${esc(p.location || "")} · válido por 15 dias</p>
+<p>${esc(e.scope || p.description)}</p>
+<table><thead><tr><td><b>Item</b></td><td><b>Qtd</b></td><td><b>Un.</b></td><td><b>Preço un.</b></td><td><b>Total</b></td></tr></thead><tbody>${rows}</tbody>
+<tfoot>${adds}<tr class="t"><td colspan="4">Total</td><td>${money(t.total)}</td></tr></tfoot></table>
+${e.durationDays ? `<p><b>Prazo estimado:</b> ${esc(e.durationDays)} dia(s)${e.crew ? " · " + esc(e.crew) : ""}</p>` : ""}
+${e.assumptions.length ? `<p><b>Premissas:</b> ${e.assumptions.map(esc).join("; ")}</p>` : ""}
+${e.exclusions.length ? `<p><b>Não incluso:</b> ${e.exclusions.map(esc).join("; ")}</p>` : ""}
+</body></html>`;
+}
+function csv(p){
+  const q = v => `"${String(v).replace(/"/g, '""')}"`;
+  const L = [["Etapa","Tipo","Item","Qtd","Unidade","Preço unitário","Total"].map(q).join(";")];
+  p.estimate.groups.forEach(g => g.items.forEach(it => L.push([g.name, KIND[it.kind].label, it.name, String(it.qty).replace(".", ","), it.unit, num(it.unitPrice).toFixed(2).replace(".", ","), (num(it.qty)*num(it.unitPrice)).toFixed(2).replace(".", ",")].map(q).join(";"))));
+  return "\uFEFF" + L.join("\n");
+}
+async function download(filename, data){
+  const type = filename.endsWith(".csv") ? "text/csv" : filename.endsWith(".json") ? "application/json" : "text/html";
+  const url = URL.createObjectURL(new Blob([data], { type: type + ";charset=utf-8" }));
+  const a = document.createElement("a"); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast("Arquivo baixado.");
+}
+async function copy(text){
+  try{ await navigator.clipboard.writeText(text); toast("Copiado."); }
+  catch{ const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); toast("Copiado."); }catch{ toast("Selecione e copie manualmente."); } ta.remove(); }
+}
+const slug = s => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "orcamento";
+
+/* ---------- events ---------- */
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if(!b || b.tagName === "INPUT" || b.tagName === "TEXTAREA") return;
+  const act = b.dataset.act, r = state.route, p = r.name === "project" ? getProject(r.id) : null;
+  const touch = () => { if(p && !p.example) saveProject(p); render(); };
+  switch(act){
+    case "tab": go({ name:b.dataset.k }); break;
+    case "back":
+      if(r.name === "new" && state.draft?.step === 2){ state.draft.step = 1; render(); }
+      else go({ name:"home" });
+      break;
+    case "open": {
+      if(b.dataset.id === "exemplo") state.exampleCopy = clone(EXAMPLE);
+      go({ name:"project", id:b.dataset.id }); state.tab = "home"; renderTabs(); break; }
+    case "cam": $("#camIn").click(); break;
+    case "gal": $("#galIn").click(); break;
+    case "rmph": { const d = state.draft; const i = d.photos.findIndex(x => x.id === b.dataset.id); if(i > -1){ URL.revokeObjectURL(d.photos[i].url); d.photos.splice(i, 1); } render(); break; }
+    case "analyze": doAnalyze(); break;
+    case "ans": { const d = state.draft; d.answers[b.dataset.q] = d.answers[b.dataset.q] === b.dataset.v ? undefined : b.dataset.v; b.closest(".chips").querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", d.answers[b.dataset.q] === c.dataset.v)); break; }
+    case "estimate": doEstimate(); break;
+    case "stop": ctl?.abort(); break;
+    case "resume": { const pr = getProject(b.dataset.id); state.draft = { step:2, photos:[], description:pr.description, location:pr.location, project:pr, answers:{}, custom:{} }; state.route = { name:"new" }; state.tab = "new"; render(); break; }
+    case "edit": { const gi = +b.dataset.g, ii = +b.dataset.i; state.editing = state.editing && state.editing.gi === gi && state.editing.ii === ii ? null : { gi, ii }; render(); break; }
+    case "done": state.editing = null; touch(); break;
+    case "kind": { const it = p.estimate.groups[state.editing.gi].items[state.editing.ii]; it.kind = b.dataset.k; touch(); break; }
+    case "rmitem": { p.estimate.groups[state.editing.gi].items.splice(state.editing.ii, 1); state.editing = null; touch(); break; }
+    case "topb": {
+      const it = p.estimate.groups[state.editing.gi].items[state.editing.ii];
+      const i = state.pricebook.findIndex(x => x.name.toLowerCase() === it.name.toLowerCase());
+      const row = { name:it.name, unit:it.unit, price:num(it.unitPrice), cat:p.estimate.groups[state.editing.gi].name };
+      if(i > -1) state.pricebook[i] = row; else state.pricebook.unshift(row);
+      savePricebook(); toast(i > -1 ? "Preço atualizado na sua tabela." : "Salvo na sua tabela."); break; }
+    case "additem": { const g = p.estimate.groups[+b.dataset.g]; g.items.push({ kind:"material", name:"Novo item", qty:1, unit:"un", unitPrice:0, note:"" }); state.editing = { gi:+b.dataset.g, ii:g.items.length - 1 }; touch(); break; }
+    case "addpb": { const g = p.estimate.groups[+b.dataset.g]; state.pbPick = +b.dataset.g;
+      const pb = state.pricebook[0]; if(!pb) break;
+      openPicker(p, +b.dataset.g); break; }
+    case "addgroup": p.estimate.groups.push({ name:"Nova etapa", items:[{ kind:"labor", name:"Mão de obra", qty:1, unit:"h", unitPrice:num(state.settings.laborRate), note:"" }] }); state.editing = { gi:p.estimate.groups.length - 1, ii:0 }; touch(); break;
+    case "upsell": { const u = p.estimate.upsells.splice(+b.dataset.i, 1)[0]; let g = p.estimate.groups.find(x => x.name === "Adicionais"); if(!g){ g = { name:"Adicionais", items:[] }; p.estimate.groups.push(g); } g.items.push({ kind:"other", name:u.name, qty:1, unit:"vb", unitPrice:u.price, note:"" }); touch(); toast("Adicional incluído."); break; }
+    case "refine": doRefine(p); break;
+    case "clientmsg": doClientMsg(p); break;
+    case "copymsg": copy(state.clientMsg?.text || ""); break;
+    case "copytext": copy(plainText(p)); break;
+    case "exporthtml": download(`orcamento-${slug(p.name)}.html`, quoteHTML(p)); break;
+    case "exportcsv": download(`orcamento-${slug(p.name)}.csv`, csv(p)); break;
+    case "dup": { const c = clone(p); c.id = uid(); c.name = p.name + " (cópia)"; c.createdAt = Date.now(); state.projects.push(c); saveProject(c, true); go({ name:"project", id:c.id }); toast("Cópia criada."); break; }
+    case "askdel": state.confirmDelete = true; render(); break;
+    case "nodel": state.confirmDelete = false; render(); break;
+    case "dodel": { state.projects = state.projects.filter(x => x.id !== p.id); Store.del("p_" + p.id); go({ name:"home" }); toast("Orçamento excluído."); break; }
+    case "pbdel": state.pricebook.splice(+b.dataset.i, 1); savePricebook(); render(); break;
+    case "pick": { const pr = getProject(state.route.id); const it = state.pricebook[+b.dataset.i]; pr.estimate.groups[state.pbPick].items.push({ kind: /m[aã]o de obra|servi/i.test(it.cat || "") ? "labor" : "material", name:it.name, qty:1, unit:it.unit, unitPrice:it.price, note:"" }); closePicker(); if(!pr.example) saveProject(pr); render(); break; }
+    case "closepick": closePicker(); break;
+    case "set": state.settings[b.dataset.k] = b.dataset.v; saveSettings(); render(); break;
+    case "rmkey": try{ localStorage.removeItem(KEY_LS); }catch{} state.keyStatus = null; initAI(); render(); toast("Chave removida deste aparelho."); break;
+    case "testkey":
+      state.keyStatus = { ok:true, msg:"Testando…" }; render();
+      ask("Responda apenas: OK", { modelTier:"quick" })
+        .then(() => { state.keyStatus = { ok:true, msg:"Chave funcionando." }; })
+        .catch(err => { state.keyStatus = { ok:false, msg: aiErr(err) }; })
+        .finally(render);
+      break;
+    case "backup": {
+      const data = JSON.stringify({ app:"truecost", version:1, exportedAt:new Date().toISOString(), data: Store.readAll() }, null, 1);
+      download(`truecost-backup-${new Date().toISOString().slice(0, 10)}.json`, data); break; }
+    case "restore": $("#restoreIn")?.click(); break;
+  }
+});
+document.addEventListener("input", e => {
+  const el = e.target, act = el.dataset.act, r = state.route;
+  if(el.id === "desc" && state.draft){ state.draft.description = el.value; const btn = document.querySelector('[data-act="analyze"]'); if(btn) btn.disabled = !state.sample || (!state.draft.photos.length && !el.value.trim()); return; }
+  if(el.id === "loc" && state.draft){ state.draft.location = el.value; return; }
+  if(el.id === "refine"){ state.refineDraft = el.value; return; }
+  if(act === "anscustom"){ state.draft.custom[el.dataset.q] = el.value; return; }
+  if(act === "meas"){ state.draft.project.analysis.measurements[+el.dataset.i].value = el.value; return; }
+  if(act === "setin"){ state.settings[el.dataset.k] = ["laborRate","contingency","markup","tax"].includes(el.dataset.k) ? num(el.value) : el.value; clearTimeout(state._st); state._st = setTimeout(saveSettings, 700); return; }
+  const p = r.name === "project" ? getProject(r.id) : null; if(!p) return;
+  if(act === "f"){ const it = p.estimate.groups[state.editing.gi].items[state.editing.ii]; const f = el.dataset.f; it[f] = (f === "qty" || f === "unitPrice") ? num(el.value) : el.value; if(!p.example) saveProject(p); liveTotals(p); }
+  if(act === "adj"){ p.adj[el.dataset.k] = num(el.value); if(!p.example) saveProject(p); liveTotals(p); }
+});
+/* re-render on blur so typed values settle without stealing focus while typing */
+document.addEventListener("change", e => { const a = e.target.dataset.act; if(a === "adj" || a === "f") render(); });
+function liveTotals(p){
+  const t = totals(p); const big = document.querySelector(".total .big .hl"); if(big) big.textContent = money(t.total);
+  const tt = document.querySelector(".adj .r.tt .num"); if(tt) tt.textContent = money(t.total);
+}
+document.addEventListener("change", async e => {
+  if(e.target.id !== "restoreIn" || !e.target.files[0]) return;
+  try{
+    const obj = JSON.parse(await e.target.files[0].text());
+    if(obj?.app !== "truecost" || typeof obj.data !== "object") throw 0;
+    const all = { ...Store.readAll(), ...obj.data };
+    Store.writeAll(all); await loadState(); render();
+    toast(`Backup importado: ${state.projects.length} orçamento(s).`);
+  }catch{ toast("Esse arquivo não é um backup do TrueCost."); }
+  e.target.value = "";
+});
+document.addEventListener("submit", e => {
+  if(e.target.id === "keyform"){
+    e.preventDefault();
+    const v = $("#apikey").value.trim();
+    if(!/^sk-ant-/.test(v)){ state.keyStatus = { ok:false, msg:"A chave começa com sk-ant-. Copie de novo do console." }; render(); return; }
+    try{ localStorage.setItem(KEY_LS, v); }catch{ toast("Este navegador bloqueou o salvamento."); return; }
+    state.keyStatus = { ok:true, msg:"Chave salva neste aparelho. Toque em Testar para conferir." };
+    initAI(); render(); return;
+  }
+  if(e.target.id !== "pbform") return; e.preventDefault();
+  const name = $("#pb-n").value.trim(), unit = $("#pb-u").value.trim(), price = num($("#pb-p").value), cat = $("#pb-c").value.trim();
+  if(!name || !unit) return;
+  state.pricebook.unshift({ name, unit, price, cat }); savePricebook(); render(); toast("Preço adicionado."); $("#pb-n")?.focus();
+});
+
+/* price-book picker (inline sheet) */
+function openPicker(){
+  closePicker();
+  const sh = document.createElement("div"); sh.id = "picker"; sh.className = "card";
+  sh.style.cssText = "position:fixed;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:calc(76px + env(safe-area-inset-bottom,0px));max-width:568px;margin:0 auto;max-height:55vh;overflow:auto;z-index:15;box-shadow:0 10px 40px rgba(0,0,0,.25)";
+  sh.innerHTML = `<div class="row" style="padding:12px 16px;border-bottom:1px solid var(--line)"><b class="grow">Adicionar da minha tabela</b><button class="btn ghost" data-act="closepick">Fechar</button></div>` +
+    state.pricebook.map((p, i) => `<button class="pb-row" style="width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left" data-act="pick" data-i="${i}"><span>${esc(p.name)}<br><span class="small muted">por ${esc(p.unit)}</span></span><span class="num">${money(p.price)}</span></button>`).join("");
+  document.body.appendChild(sh);
+}
+function closePicker(){ document.getElementById("picker")?.remove(); }
+
+/* ---------- boot ---------- */
+async function loadState(){
+  const all = await Store.loadAll();
+  if(all.settings) state.settings = { ...DEFAULT_SETTINGS, ...all.settings };
+  if(all.pricebook?.items) state.pricebook = all.pricebook.items;
+  state.projects = Object.keys(all).filter(k => k.startsWith("p_")).map(k => all[k]);
+}
+async function boot(){
+  initAI();
+  try{ await loadState(); }
+  catch(e){ console.warn(e); toast("Não consegui carregar seus orçamentos agora."); }
+  state.loaded = true;
+  render();
+}
+boot();
+})();
+</script>
+</body>
+</html>
