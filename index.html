@@ -292,13 +292,14 @@ en:{
   storageFull:"Storage is full. Export a backup and delete old estimates.", loadFail:"Couldn't load your estimates right now.",
   pickT:"Add from my price list", close:"Close", notGiven:"not given", extraQ:"Additional notes",
   quoteT:"Estimate", validFor:"valid for 15 days", directCost:"Direct cost", durationL:"Estimated duration", daysN:"{n} day(s)",
+  engineT:"AI engine", engLocal:"On this device", engApi:"Anthropic API key", localT:"On-device AI", localHelp:"Runs entirely on this phone with the graphics chip: no key, no cost, works offline after a one-time download. It reads your description and measurements (not the photos) and is less precise than Claude, so keep My prices up to date.", mFast:"Fast", mBetter:"Better", mFastSub:"Qwen3.5 2B · about 1.5 GB · newer iPhones", mBetterSub:"Qwen3 4B · about 2.5 GB · more accurate, needs more memory", dl:"Download model", ready:"Ready · works offline", notDl:"Not downloaded", removeModel:"Remove from device", modelRemoved:"Model removed from this device.", loadingModel:"Loading the AI model", noWebGPU:"This browser can't run on-device AI (it needs WebGPU). On iPhone use Safari on iOS 26 or newer. You can still use an Anthropic API key.", localPhotoNote:"The on-device AI reads your description and measurements, not the photos. Include sizes and materials in the description.", aiOffLocal:"Download the on-device AI model once in Settings. After that it works offline, without a key.", openSettings:"Open Settings", dlKeepOpen:"Keep this screen open while it downloads.", localThinking:"Running on this device. Keep the app open; this can take 1–3 minutes.",
   recent:"Recent estimates", seeAll:"See all in My projects ({n})", projH:"Every estimate you make", searchPh:"Search by name, place or description", noMatch:"No estimate matches “{q}”.", noProjects:"No estimates yet. Tap New to price your first job.", draft:"Draft", sortNew:"Newest", sortTotal:"Highest total", sortName:"A–Z",
   genPdf:"Generate PDF", pdfMaking:"Creating PDF…", pdfDone:"PDF ready.", pdfFail:"Couldn't create the PDF. Check your connection and try again.",
   pdfPhotos:"Site photos", likely:"Likely range", acceptT:"Acceptance", acceptP:"By signing below, the client accepts this estimate and its terms.",
   sigClient:"Client signature", sigDate:"Date", pageOf:"Page {a} of {b}", genWith:"Generated with TrueCost", preparedFor:"Prepared by",
   savedDb:"Saved automatically to your Claude account", savedDev:"Saved automatically on this device", savedAt:"last change {d}",
   csvHead:["Phase","Type","Item","Qty","Unit","Unit price","Total"], newProject:"New estimate",
-  err:{ not_granted:"You haven't allowed this page to use Claude.", sampling_disabled:"Claude isn't available for this account.",
+  err:{ local_fail:"The on-device AI stopped. Close other apps, or switch to the Fast model in Settings.", no_model:"Download the on-device model in Settings first.", not_granted:"You haven't allowed this page to use Claude.", sampling_disabled:"Claude isn't available for this account.",
     rate_limited:"Too many requests in a row. Wait a bit and try again.", image_rejected:"One of the photos couldn't be read. Try another.",
     images_unavailable:"This view can't send photos. Describe the work in text.", invalid_json:"The answer came back incomplete. Try again.",
     refused:"The request was declined. Rephrase the description.", session_expired:"Your session expired. Sign in to Claude again.",
@@ -374,13 +375,14 @@ es:{
   storageFull:"Almacenamiento lleno. Exporta un respaldo y elimina presupuestos viejos.", loadFail:"No pude cargar tus presupuestos ahora.",
   pickT:"Agregar de mi lista de precios", close:"Cerrar", notGiven:"no indicado", extraQ:"Notas adicionales",
   quoteT:"Presupuesto", validFor:"válido por 15 días", directCost:"Costo directo", durationL:"Duración estimada", daysN:"{n} día(s)",
+  engineT:"Motor de IA", engLocal:"En este dispositivo", engApi:"Clave de API de Anthropic", localT:"IA en el dispositivo", localHelp:"Funciona por completo en este teléfono con el chip gráfico: sin clave, sin costo y sin internet después de una descarga única. Lee tu descripción y medidas (no las fotos) y es menos precisa que Claude, así que mantén Mis precios al día.", mFast:"Rápido", mBetter:"Mejor", mFastSub:"Qwen3.5 2B · unos 1.5 GB · iPhones recientes", mBetterSub:"Qwen3 4B · unos 2.5 GB · más preciso, usa más memoria", dl:"Descargar modelo", ready:"Listo · funciona sin internet", notDl:"No descargado", removeModel:"Quitar del dispositivo", modelRemoved:"Modelo eliminado de este dispositivo.", loadingModel:"Cargando el modelo de IA", noWebGPU:"Este navegador no puede ejecutar IA en el dispositivo (necesita WebGPU). En iPhone usa Safari con iOS 26 o más reciente. También puedes usar una clave de API de Anthropic.", localPhotoNote:"La IA del dispositivo lee tu descripción y medidas, no las fotos. Incluye tamaños y materiales en la descripción.", aiOffLocal:"Descarga una vez el modelo de IA en Ajustes. Después funciona sin internet y sin clave.", openSettings:"Abrir Ajustes", dlKeepOpen:"Mantén esta pantalla abierta mientras descarga.", localThinking:"Funcionando en este dispositivo. Mantén la app abierta; puede tardar de 1 a 3 minutos.",
   recent:"Presupuestos recientes", seeAll:"Ver todos en Mis proyectos ({n})", projH:"Todos tus presupuestos", searchPh:"Buscar por nombre, lugar o descripción", noMatch:"Ningún presupuesto coincide con “{q}”.", noProjects:"Todavía no hay presupuestos. Toca Nuevo para cotizar tu primer trabajo.", draft:"Borrador", sortNew:"Más recientes", sortTotal:"Mayor total", sortName:"A–Z",
   genPdf:"Generar PDF", pdfMaking:"Creando el PDF…", pdfDone:"PDF listo.", pdfFail:"No se pudo crear el PDF. Revisa tu conexión e inténtalo de nuevo.",
   pdfPhotos:"Fotos de la obra", likely:"Rango probable", acceptT:"Aceptación", acceptP:"Al firmar abajo, el cliente acepta este presupuesto y sus condiciones.",
   sigClient:"Firma del cliente", sigDate:"Fecha", pageOf:"Página {a} de {b}", genWith:"Generado con TrueCost", preparedFor:"Preparado por",
   savedDb:"Guardado automáticamente en tu cuenta de Claude", savedDev:"Guardado automáticamente en este dispositivo", savedAt:"último cambio {d}",
   csvHead:["Etapa","Tipo","Partida","Cant.","Unidad","Precio unitario","Total"], newProject:"Nuevo presupuesto",
-  err:{ not_granted:"No autorizaste a esta página a usar Claude.", sampling_disabled:"Claude no está disponible en esta cuenta.",
+  err:{ local_fail:"La IA del dispositivo se detuvo. Cierra otras apps o cambia al modelo Rápido en Ajustes.", no_model:"Primero descarga el modelo en Ajustes.", not_granted:"No autorizaste a esta página a usar Claude.", sampling_disabled:"Claude no está disponible en esta cuenta.",
     rate_limited:"Demasiadas solicitudes seguidas. Espera un poco e inténtalo de nuevo.", image_rejected:"Una de las fotos no se pudo leer. Prueba otra.",
     images_unavailable:"Esta vista no envía fotos. Describe el trabajo en texto.", invalid_json:"La respuesta llegó incompleta. Inténtalo de nuevo.",
     refused:"La solicitud fue rechazada. Reformula la descripción.", session_expired:"Tu sesión expiró. Vuelve a entrar en Claude.",
@@ -456,13 +458,14 @@ pt:{
   storageFull:"Armazenamento cheio. Exporte um backup e exclua orçamentos antigos.", loadFail:"Não consegui carregar seus orçamentos agora.",
   pickT:"Adicionar da minha tabela", close:"Fechar", notGiven:"não informado", extraQ:"Observações adicionais",
   quoteT:"Orçamento", validFor:"válido por 15 dias", directCost:"Custo direto", durationL:"Prazo estimado", daysN:"{n} dia(s)",
+  engineT:"Motor de IA", engLocal:"Neste aparelho", engApi:"Chave da API Anthropic", localT:"IA no aparelho", localHelp:"Roda inteira neste celular usando o chip gráfico: sem chave, sem custo e sem internet depois de um download único. Lê sua descrição e medidas (não as fotos) e é menos precisa que o Claude, então mantenha Meus preços atualizado.", mFast:"Rápido", mBetter:"Melhor", mFastSub:"Qwen3.5 2B · cerca de 1,5 GB · iPhones recentes", mBetterSub:"Qwen3 4B · cerca de 2,5 GB · mais preciso, usa mais memória", dl:"Baixar modelo", ready:"Pronto · funciona offline", notDl:"Não baixado", removeModel:"Remover do aparelho", modelRemoved:"Modelo removido deste aparelho.", loadingModel:"Carregando o modelo de IA", noWebGPU:"Este navegador não roda IA no aparelho (precisa de WebGPU). No iPhone use o Safari no iOS 26 ou mais novo. Você ainda pode usar uma chave da API Anthropic.", localPhotoNote:"A IA do aparelho lê sua descrição e medidas, não as fotos. Coloque tamanhos e materiais na descrição.", aiOffLocal:"Baixe o modelo de IA uma vez em Ajustes. Depois funciona offline e sem chave.", openSettings:"Abrir Ajustes", dlKeepOpen:"Deixe esta tela aberta durante o download.", localThinking:"Rodando neste aparelho. Mantenha o app aberto; pode levar de 1 a 3 minutos.",
   recent:"Orçamentos recentes", seeAll:"Ver todos em Meus projetos ({n})", projH:"Todos os seus orçamentos", searchPh:"Buscar por nome, local ou descrição", noMatch:"Nenhum orçamento encontrado para “{q}”.", noProjects:"Nenhum orçamento ainda. Toque em Novo para orçar sua primeira obra.", draft:"Rascunho", sortNew:"Mais recentes", sortTotal:"Maior total", sortName:"A–Z",
   genPdf:"Gerar PDF", pdfMaking:"Criando o PDF…", pdfDone:"PDF pronto.", pdfFail:"Não consegui criar o PDF. Verifique a conexão e tente de novo.",
   pdfPhotos:"Fotos do local", likely:"Faixa provável", acceptT:"Aceite", acceptP:"Ao assinar abaixo, o cliente aceita este orçamento e suas condições.",
   sigClient:"Assinatura do cliente", sigDate:"Data", pageOf:"Página {a} de {b}", genWith:"Gerado com TrueCost", preparedFor:"Preparado por",
   savedDb:"Salvo automaticamente na sua conta Claude", savedDev:"Salvo automaticamente neste aparelho", savedAt:"última alteração {d}",
   csvHead:["Etapa","Tipo","Item","Qtd","Unidade","Preço unitário","Total"], newProject:"Novo orçamento",
-  err:{ not_granted:"Você não autorizou o uso do Claude nesta página.", sampling_disabled:"O Claude não está disponível nesta conta.",
+  err:{ local_fail:"A IA do aparelho parou. Feche outros apps ou troque para o modelo Rápido em Ajustes.", no_model:"Baixe primeiro o modelo em Ajustes.", not_granted:"Você não autorizou o uso do Claude nesta página.", sampling_disabled:"O Claude não está disponível nesta conta.",
     rate_limited:"Muitas solicitações seguidas. Aguarde um pouco e tente de novo.", image_rejected:"Uma das fotos não pôde ser lida. Tente outra foto.",
     images_unavailable:"Esta visualização não envia fotos. Descreva o serviço em texto.", invalid_json:"A resposta veio incompleta. Tente de novo.",
     refused:"O pedido foi recusado. Reformule a descrição.", session_expired:"Sua sessão expirou. Entre novamente no Claude.",
@@ -496,7 +499,7 @@ const fmtStamp = ts => new Date(ts).toLocaleString(LOCALE[lang()], { month:"shor
 const fmtDate = ts => new Date(ts).toLocaleDateString(LOCALE[lang()], { month:"short", day:"numeric", year:"numeric" });
 
 /* ---------- defaults ---------- */
-const DEFAULT_SETTINGS = { v:2, lang:"en", currency:"USD", region:"", units:"imperial", laborRate:65, contingency:10, markup:20, tax:0, company:"", tier:"default" };
+const DEFAULT_SETTINGS = { v:2, lang:"en", currency:"USD", region:"", units:"imperial", laborRate:65, contingency:10, markup:20, tax:0, company:"", tier:"default", localModel:"fast" };
 const KIND_COLOR = { material:"var(--mat)", labor:"var(--lab)", other:"var(--oth)" };
 const KINDS = ["material","labor","other"];
 const kindLabel = k => t({ material:"kMat", labor:"kLab", other:"kOth" }[k]);
@@ -665,8 +668,66 @@ apiAsk.json = async (prompt, opts) => {
   if(truncated) throw { code:"invalid_json", text };
   return parseJSON(text);
 };
+/* On-device AI (web only): WebLLM runs an open model on the phone's GPU through WebGPU.
+   The answer is constrained to the JSON schema the app expects, so small models still return valid data. */
+const WEBLLM_URL = "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.86/+esm";
+const LOCAL_MODELS = { fast:"Qwen3.5-2B", better:"Qwen3-4B" };
+const LOCAL_LS = "truecost.localModel";
+const HAS_GPU = !IN_CLAUDE && !!navigator.gpu;
+let webllmP = null, localEngine = null, localEngineId = null, gpuF16 = null;
+const loadWebLLM = () => (webllmP ||= import(WEBLLM_URL).catch(() => { webllmP = null; throw { code:"sdk_load" }; }));
+async function localModelId(){
+  if(gpuF16 === null){ try{ const ad = await navigator.gpu.requestAdapter(); gpuF16 = !!ad?.features.has("shader-f16"); }catch{ gpuF16 = false; } }
+  return `${LOCAL_MODELS[state.settings.localModel] || LOCAL_MODELS.fast}-${gpuF16 ? "q4f16_1" : "q4f32_1"}-MLC`;
+}
+const localDownloaded = () => { try{ return localStorage.getItem(LOCAL_LS) || ""; }catch{ return ""; } };
+const localReady = () => HAS_GPU && localDownloaded().startsWith((LOCAL_MODELS[state.settings.localModel] || LOCAL_MODELS.fast) + "-");
+const engineKind = () => IN_CLAUDE ? "claude" : (state.settings.engine || (getKey() ? "api" : "local"));
+async function getLocalEngine(onProgress){
+  const id = await localModelId();
+  if(localEngine && localEngineId === id) return localEngine;
+  const webllm = await loadWebLLM();
+  if(localEngine){ try{ await localEngine.unload(); }catch{} localEngine = null; }
+  try{ navigator.storage?.persist?.(); }catch{}
+  // Small prefill chunks keep each GPU dispatch short; phones and older GPUs reset long ones.
+  localEngine = await webllm.CreateMLCEngine(id, { initProgressCallback: r => onProgress?.(r) }, { context_window_size: 6144, prefill_chunk_size: 256 });
+  localEngineId = id;
+  try{ localStorage.setItem(LOCAL_LS, id); }catch{}
+  return localEngine;
+}
+async function localAsk(prompt, opts = {}){
+  let eng;
+  try{ eng = await getLocalEngine(opts.onProgress); }
+  catch(e){ throw e?.code ? e : { code:"local_fail", message:String(e?.message || e) }; }
+  const req = { stream:true, temperature:0.2, max_tokens:2500, frequency_penalty:0.3,
+    messages:[{ role:"system", content:"You are a careful construction cost estimator. Answer only in the requested format." }, { role:"user", content:prompt }] };
+  if(opts.schema) req.response_format = { type:"json_object", schema: JSON.stringify(opts.schema) };
+  const stop = () => { try{ eng.interruptGenerate(); }catch{} };
+  opts.signal?.addEventListener("abort", stop);
+  let text = "";
+  try{
+    const chunks = await eng.chat.completions.create(req);
+    for await (const c of chunks){ const d = c.choices?.[0]?.delta?.content || ""; if(d){ text += d; opts.onText?.({ text, delta:d }); } }
+  }catch(e){
+    try{ await localEngine?.unload(); }catch{}
+    localEngine = null; localEngineId = null;   // a lost GPU device leaves the engine unusable; reload it next time
+    throw { code:"local_fail", message:String(e?.message || e) };
+  }
+  finally{ opts.signal?.removeEventListener("abort", stop); }
+  if(opts.signal?.aborted) throw { code:"cancelled" };
+  text = text.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+  if(!text) throw { code:"empty_completion" };
+  return { text, truncated:false };
+}
+localAsk.json = async (prompt, opts) => parseJSON((await localAsk(prompt, opts)).text);
+localAsk.local = true;
+
 async function initAI(){
-  if(!IN_CLAUDE){ state.sample = getKey() ? apiAsk : null; state.imgLimits = { maxCount: 6 }; return; }
+  if(!IN_CLAUDE){
+    const k = engineKind();
+    state.sample = k === "api" ? (getKey() ? apiAsk : null) : (localReady() ? localAsk : null);
+    state.imgLimits = { maxCount: 6 }; return;
+  }
   try{
     const s = await window.claude.use("sample");
     state.sample = s;
@@ -684,7 +745,7 @@ const unitsBlock = () => state.settings.units === "metric"
 
 function ctxBlock(){
   const s = state.settings, u = unitsBlock();
-  const pb = state.pricebook.slice(0, 120).map(p => `- ${p.name} | ${p.unit} | ${p.price}`).join("\n");
+  const pb = state.pricebook.slice(0, state.sample?.local ? 40 : 120).map(p => `- ${p.name} | ${p.unit} | ${p.price}`).join("\n");
   return `USER CONTEXT
 - Pricing region: ${s.region || "United States (use typical national pricing)"}
 - Currency: ${s.currency}. Measurement system: ${u.sys}. Use only these units.
@@ -762,6 +823,20 @@ USER REQUEST: """${instr}"""
 Keep items the request doesn't affect exactly as they are (same prices and quantities). Keep prices in ${p.currency || state.settings.currency}. ${ESTIMATE_RULES()}
 Reply ONLY with JSON in the shape below, adding "changeNote" (1 sentence on what changed):
 ${estimateSchema()}`;
+
+/* JSON schemas: used by the on-device model to constrain its output (the cloud engines get the shape in the prompt). */
+const STR_ARR = { type:"array", items:{ type:"string" } };
+const ANALYSIS_SCHEMA = { type:"object", properties:{ title:{ type:"string" }, projectType:{ type:"string" }, trades:STR_ARR, summary:{ type:"string" }, observations:STR_ARR,
+  measurements:{ type:"array", items:{ type:"object", properties:{ label:{ type:"string" }, value:{ type:"number" }, unit:{ type:"string" }, basis:{ type:"string" } }, required:["label","value","unit","basis"] } },
+  questions:{ type:"array", items:{ type:"object", properties:{ id:{ type:"string" }, question:{ type:"string" }, options:STR_ARR }, required:["id","question","options"] } } },
+  required:["title","projectType","trades","summary","observations","measurements","questions"] };
+const ESTIMATE_SCHEMA = { type:"object", properties:{ title:{ type:"string" }, scope:{ type:"string" },
+  groups:{ type:"array", items:{ type:"object", properties:{ name:{ type:"string" }, items:{ type:"array", items:{ type:"object", properties:{
+    kind:{ type:"string", enum:["material","labor","other"] }, name:{ type:"string" }, qty:{ type:"number" }, unit:{ type:"string" }, unitPrice:{ type:"number" }, note:{ type:"string" } }, required:["kind","name","qty","unit","unitPrice"] } } }, required:["name","items"] } },
+  assumptions:STR_ARR, exclusions:STR_ARR, durationDays:{ type:"number" }, crew:{ type:"string" }, confidence:{ type:"string" }, rangePct:{ type:"number" },
+  upsells:{ type:"array", items:{ type:"object", properties:{ name:{ type:"string" }, price:{ type:"number" } }, required:["name","price"] } }, changeNote:{ type:"string" } },
+  required:["title","scope","groups","assumptions","exclusions","durationDays","crew","confidence","rangePct","upsells"] };
+const photosToAI = () => !state.sample?.local;
 
 /* ---------- totals ---------- */
 function totals(p){
@@ -902,6 +977,7 @@ function vProjects(){
 function aiBanner(){
   if(state.sample) return "";
   if(IN_CLAUDE) return `<div class="note">${t("aiOffClaude")}</div>`;
+  if(engineKind() === "local") return `<div class="note stack" style="gap:8px">${HAS_GPU ? t("aiOffLocal") : t("noWebGPU")}<button class="btn" data-act="tab" data-k="settings" style="align-self:flex-start">${t("openSettings")}</button></div>`;
   return `<div class="note stack" style="gap:8px">${t("aiOffKey")}<button class="btn" data-act="tab" data-k="settings" style="align-self:flex-start">${t("addKey")}</button></div>`;
 }
 
@@ -916,6 +992,7 @@ function vNew(){
     return `${steps}
     <div><span class="eyebrow">${t("step1")}</span><h1 style="font-size:26px;margin-top:4px">${t("step1H")}</h1></div>
     ${aiBanner()}
+    ${state.sample?.local ? `<div class="note" style="border-color:var(--accent)">${t("localPhotoNote")}</div>` : ""}
     ${canImg ? `<div class="stack"><div class="photos">${ph}
       ${d.photos.length < max ? `<button class="addph" data-act="cam">${I.cam}${t("camera")}</button><button class="addph" data-act="gal">${I.img}${t("gallery")}</button>` : ""}</div>
       <span class="small muted">${t("photoTip", { n:max })}</span></div>`
@@ -947,7 +1024,7 @@ function vNew(){
 function vBusy(){
   const b = state.busy;
   return `<div class="card pad think"><span class="eyebrow">${esc(t(b.label))}</span><div class="scan"></div>
-    <span class="small muted">${b.hasText ? t("writing") : t("thinking")}</span>
+    <span class="small muted">${b.hasText ? t("writing") : state.sample?.local ? t("localThinking") : t("thinking")}</span>
     <div class="stream" id="stream">${esc(b.text || "")}</div>
     <button class="btn" data-act="stop">${t("stop")}</button></div>`;
 }
@@ -1059,7 +1136,19 @@ function vSettings(){
   const s = state.settings;
   const seg = (k, opts) => `<div class="seg">${opts.map(([v, l]) => `<button type="button" data-act="set" data-k="${k}" data-v="${v}" aria-pressed="${s[k] === v}">${l}</button>`).join("")}</div>`;
   const key = getKey();
-  const keyBox = IN_CLAUDE ? "" : `<section class="card pad stack" id="keybox">
+  const eng = engineKind(), dlId = localReady() ? localDownloaded() : "", lm = s.localModel || "fast", ls = state.localStatus;
+  const engineBox = IN_CLAUDE ? "" : `<section class="card pad stack"><span class="eyebrow">${t("engineT")}</span>
+    <div class="seg" style="align-self:flex-start"><button type="button" data-act="set" data-k="engine" data-v="local" aria-pressed="${eng === "local"}">${t("engLocal")}</button><button type="button" data-act="set" data-k="engine" data-v="api" aria-pressed="${eng === "api"}">${t("engApi")}</button></div></section>`;
+  const localBox = IN_CLAUDE || eng !== "local" ? "" : `<section class="card pad stack">
+    <div class="row"><span class="eyebrow grow">${t("localT")}</span><span class="badge" style="${dlId ? "background:var(--good);color:var(--surface)" : ""}">${dlId ? t("ready") : t("notDl")}</span></div>
+    ${!HAS_GPU ? `<div class="note">${t("noWebGPU")}</div>` : `
+    <span class="small muted">${t("localHelp")}</span>
+    <div class="stack" style="gap:8px">${["fast","better"].map(k => `<button type="button" class="card row" style="padding:10px 12px;text-align:left;${lm === k ? "border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)" : ""}" data-act="set" data-k="localModel" data-v="${k}" aria-pressed="${lm === k}"><span class="grow"><b>${t(k === "fast" ? "mFast" : "mBetter")}</b><br><span class="small muted">${t(k === "fast" ? "mFastSub" : "mBetterSub")}</span></span>${lm === k ? "✓" : ""}</button>`).join("")}</div>
+    ${ls?.busy ? `<div class="stack" style="gap:6px"><div class="bar"><i style="width:${Math.round(ls.p * 100)}%;background:var(--accent)"></i></div><span class="small muted num">${Math.round(ls.p * 100)}% · ${esc(ls.text || "")}</span><span class="small muted">${t("dlKeepOpen")}</span></div>`
+      : `<div class="row" style="flex-wrap:wrap">${dlId ? "" : `<button class="btn primary" data-act="localdl">${t("dl")}</button>`}${localDownloaded() ? `<button class="btn ghost danger small" data-act="localrm">${t("removeModel")}</button>` : ""}</div>`}
+    ${ls?.err ? `<span class="small" style="color:var(--bad)">${esc(ls.err)}</span>` : ""}`}
+  </section>`;
+  const keyBox = IN_CLAUDE || eng !== "api" ? "" : `<section class="card pad stack" id="keybox">
     <div class="row"><span class="eyebrow grow">${t("keyT")}</span><span class="badge" style="${key ? "background:var(--good);color:var(--surface)" : ""}">${key ? t("keyOn") : t("keyOff")}</span></div>
     ${key ? `<div class="row"><span class="num grow small">${esc(key.slice(0, 10))}…${esc(key.slice(-4))}</span>
         <button class="btn small" data-act="testkey">${t("test")}</button><button class="btn ghost danger small" data-act="rmkey">${t("remove")}</button></div>`
@@ -1068,7 +1157,7 @@ function vSettings(){
     <span class="small muted">${t("keyHelp", { link:'<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--accent)">console.anthropic.com</a>' })}</span>
   </section>`;
   return `<div><span class="eyebrow">${t("setEy")}</span><h1 style="font-size:26px;margin-top:4px">${t("setH")}</h1></div>
-  ${keyBox}
+  ${engineBox}${localBox}${keyBox}
   <section class="card pad stack">
     <label class="f">${t("company")}<input class="in" data-act="setin" data-k="company" value="${esc(s.company)}" placeholder="${esc(t("companyPh"))}"></label>
     <label class="f">${t("region")}<input class="in" data-act="setin" data-k="region" value="${esc(s.region)}" placeholder="${esc(t("regionPh"))}"></label>
@@ -1080,9 +1169,9 @@ function vSettings(){
     <div class="grid2"><label class="f">${t("contPct")}<input class="in num" inputmode="decimal" data-act="setin" data-k="contingency" value="${esc(fmtIn(s.contingency))}"></label>
       <label class="f">${t("mkPct")}<input class="in num" inputmode="decimal" data-act="setin" data-k="markup" value="${esc(fmtIn(s.markup))}"></label>
       <label class="f">${t("taxPct")}<input class="in num" inputmode="decimal" data-act="setin" data-k="tax" value="${esc(fmtIn(s.tax))}"></label></div></section>
-  <section class="card pad stack"><span class="eyebrow">${t("precisionT")}</span>
+  ${eng === "local" ? "" : `<section class="card pad stack"><span class="eyebrow">${t("precisionT")}</span>
     ${seg("tier", [["quick", t("pQuick")],["default", t("pDefault")],["complex", t("pComplex")]])}
-    <span class="small muted">${IN_CLAUDE ? t("precisionHelpClaude") : t("precisionHelpApi")}</span></section>
+    <span class="small muted">${IN_CLAUDE ? t("precisionHelpClaude") : t("precisionHelpApi")}</span></section>`}
   <section class="card pad stack"><span class="eyebrow">${t("backupT")}</span>
     <span class="small muted">${state.storeMode === "db" ? t("storedAccount") : t("storedDevice")} ${t("backupHelp")}</span>
     <div class="actions"><button class="btn" data-act="backup">${t("exportB")}</button><button class="btn" data-act="restore">${t("importB")}</button></div>
@@ -1097,6 +1186,7 @@ async function runAI(labelKey, prompt, opts){
   state.busy = { label:labelKey, text:"", hasText:false }; render();
   try{
     return await state.sample.json(prompt, { ...opts, signal: ctl.signal, modelTier: state.settings.tier || "default",
+      onProgress: r => { if(!state.busy) return; state.busy.text = `${t("loadingModel")} · ${Math.round((r.progress || 0) * 100)}%\n${r.text || ""}`; const st = $("#stream"); if(st) st.textContent = state.busy.text; },
       onText: ({ text }) => { if(!state.busy) return; state.busy.text = text.slice(-600); state.busy.hasText = true; const st = $("#stream"); if(st){ st.textContent = state.busy.text; st.scrollTop = st.scrollHeight; } else render(); } });
   } finally { state.busy = null; }
 }
@@ -1104,9 +1194,9 @@ async function runAI(labelKey, prompt, opts){
 async function doAnalyze(){
   const d = state.draft;
   d.description = $("#desc").value.trim(); d.location = $("#loc").value.trim();
-  const imgs = d.photos.map(p => p.blob);
+  const imgs = photosToAI() ? d.photos.map(p => p.blob) : [];
   try{
-    const a = await runAI("busyAnalyze", ANALYZE_PROMPT({ nPhotos: imgs.length, description: d.description, location: d.location }), imgs.length ? { images: imgs } : {});
+    const a = await runAI("busyAnalyze", ANALYZE_PROMPT({ nPhotos: imgs.length, description: d.description, location: d.location }), { schema:ANALYSIS_SCHEMA, ...(imgs.length ? { images: imgs } : {}) });
     if(!a || typeof a !== "object") throw { code:"invalid_json" };
     a.questions = (Array.isArray(a.questions) ? a.questions : []).slice(0, 5).map((q, i) => ({ id: String(q.id || "q" + (i + 1)), question: String(q.question || ""), options: Array.isArray(q.options) ? q.options.map(String).slice(0, 4) : [] })).filter(q => q.question);
     a.measurements = (Array.isArray(a.measurements) ? a.measurements : []).map(m => ({ label:String(m.label || ""), value:m.value, unit:String(m.unit || ""), basis: m.basis ? String(m.basis) : "" }));
@@ -1126,9 +1216,9 @@ async function doEstimate(){
   const answers = (p.analysis.questions || []).map(q => ({ question:q.question, answer: d.custom[q.id]?.trim() || d.answers[q.id] || t("notGiven") }));
   if(d.extra) answers.push({ question:t("extraQ"), answer:d.extra });
   p.answers = answers;
-  const imgs = d.photos.map(x => x.blob);
+  const imgs = photosToAI() ? d.photos.map(x => x.blob) : [];
   try{
-    const e = normalizeEstimate(await runAI("busyEstimate", ESTIMATE_PROMPT(p, { answers, nPhotos: imgs.length }), imgs.length ? { images: imgs } : {}));
+    const e = normalizeEstimate(await runAI("busyEstimate", ESTIMATE_PROMPT(p, { answers, nPhotos: imgs.length }), { schema:ESTIMATE_SCHEMA, ...(imgs.length ? { images: imgs } : {}) }));
     p.estimate = e; if(e.title) p.name = e.title;
     saveProject(p, true);
     d.photos.forEach(x => URL.revokeObjectURL(x.url));
@@ -1143,7 +1233,7 @@ async function doRefine(p){
   const instr = $("#refine").value.trim(); if(!instr) return;
   state.refineDraft = instr;
   try{
-    const e = normalizeEstimate(await runAI("busyRefine", REFINE_PROMPT(p, instr), { cache:false }));
+    const e = normalizeEstimate(await runAI("busyRefine", REFINE_PROMPT(p, instr), { cache:false, schema:ESTIMATE_SCHEMA }));
     p.estimate = e; state.refineDraft = ""; saveProject(p, true); toast(t("updated"));
   }catch(err){ if(err?.code !== "cancelled") toast(aiErr(err)); }
   render();
@@ -1394,7 +1484,23 @@ document.addEventListener("click", e => {
     case "pick": { const pr = getProject(state.route.id); const it = state.pricebook[+b.dataset.i]; pr.estimate.groups[state.pbPick].items.push({ kind: /labor|mano de obra|m[aã]o de obra|servi/i.test(it.cat || "") ? "labor" : "material", name:it.name, qty:1, unit:it.unit, unitPrice:it.price, note:"" }); closePicker(); saveProject(pr); render(); break; }
     case "closepick": closePicker(); break;
     case "psort": state.psort = b.dataset.k; render(); break;
-    case "set": state.settings[b.dataset.k] = b.dataset.v; saveSettings(); render(); break;
+    case "set": state.settings[b.dataset.k] = b.dataset.v; saveSettings();
+      if(b.dataset.k === "engine" || b.dataset.k === "localModel"){ state.localStatus = null; state.localActiveOk = false; initAI(); }
+      render(); break;
+    case "localdl":
+      state.localStatus = { busy:true, p:0, text:"" }; render();
+      getLocalEngine(r => { state.localStatus = { busy:true, p:r.progress || 0, text:r.text || "" }; if(state.route.name === "settings") render(); })
+        .then(() => { state.localStatus = null; state.localActiveOk = true; initAI(); toast(t("ready")); })
+        .catch(e => { console.warn(e); state.localStatus = { err: aiErr(e?.code ? e : { code:"local_fail" }) }; })
+        .finally(render);
+      break;
+    case "localrm":
+      (async () => {
+        try{ const w = await loadWebLLM(); if(localEngine){ await localEngine.unload(); localEngine = null; localEngineId = null; } await w.deleteModelAllInfoInCache(localDownloaded()); }catch(e){ console.warn(e); }
+        try{ localStorage.removeItem(LOCAL_LS); }catch{}
+        state.localActiveOk = false; initAI(); render(); toast(t("modelRemoved"));
+      })();
+      break;
     case "rmkey": try{ localStorage.removeItem(KEY_LS); }catch{} state.keyStatus = null; initAI(); render(); toast(t("keyRemoved")); break;
     case "testkey":
       state.keyStatus = { ok:true, msg:t("keyTesting") }; render();
@@ -1492,6 +1598,8 @@ async function loadState(){
   try{ localStorage.setItem("truecost.lang", state.settings.lang); }catch{}
 }
 async function boot(){
+  // Web install: cache the app so it opens without internet (the on-device model is cached by WebLLM).
+  if(!IN_CLAUDE && "serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(() => {});
   render();
   initAI();
   await Store.init();
