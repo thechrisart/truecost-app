@@ -72,8 +72,8 @@ main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px
 /* tab bar */
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
   padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
-.tabs-in{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
-.tab{background:none;border:0;padding:10px 4px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+.tabs-in{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tab{background:none;border:0;padding:10px 2px 9px;min-width:0;text-align:center;line-height:1.2;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;color:var(--muted);letter-spacing:.02em}
 .tab svg{width:22px;height:22px}
 .tab[aria-current="page"]{color:var(--accent);font-weight:600}
 .tab.cam{color:var(--ink)}
@@ -214,6 +214,7 @@ const I = {
   back:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
   spark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>',
   pdf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5"/><path d="M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg>',
+  list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
   plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
 };
 
@@ -226,7 +227,7 @@ const LOCALE = { en:"en-US", es:"es-US", pt:"pt-BR" };
 const LANG_NAME = { en:"American English", es:"Spanish (as spoken in the United States)", pt:"Brazilian Portuguese" };
 const STR = {
 en:{
-  nav:"Navigation", tabHome:"Projects", tabNew:"New", tabPrices:"My prices", tabSettings:"Settings", back:"Back",
+  nav:"Navigation", tabHome:"Home", tabProjects:"My projects", tabNew:"New", tabPrices:"My prices", tabSettings:"Settings", back:"Back",
   savedAccount:"Saved to your account", savedDevice:"Saved on this device", loading:"Loading your estimates",
   heroA:"Snap the job.", heroB:"True cost", heroC:"in minutes.",
   heroP:"Take photos of the space, describe the work and get materials, labor and a total, line by line, using your own prices.",
@@ -291,6 +292,7 @@ en:{
   storageFull:"Storage is full. Export a backup and delete old estimates.", loadFail:"Couldn't load your estimates right now.",
   pickT:"Add from my price list", close:"Close", notGiven:"not given", extraQ:"Additional notes",
   quoteT:"Estimate", validFor:"valid for 15 days", directCost:"Direct cost", durationL:"Estimated duration", daysN:"{n} day(s)",
+  recent:"Recent estimates", seeAll:"See all in My projects ({n})", projH:"Every estimate you make", searchPh:"Search by name, place or description", noMatch:"No estimate matches “{q}”.", noProjects:"No estimates yet. Tap New to price your first job.", draft:"Draft", sortNew:"Newest", sortTotal:"Highest total", sortName:"A–Z",
   genPdf:"Generate PDF", pdfMaking:"Creating PDF…", pdfDone:"PDF ready.", pdfFail:"Couldn't create the PDF. Check your connection and try again.",
   pdfPhotos:"Site photos", likely:"Likely range", acceptT:"Acceptance", acceptP:"By signing below, the client accepts this estimate and its terms.",
   sigClient:"Client signature", sigDate:"Date", pageOf:"Page {a} of {b}", genWith:"Generated with TrueCost", preparedFor:"Prepared by",
@@ -307,7 +309,7 @@ en:{
     empty_completion:"The AI didn't answer. Try again.", fallback:"Couldn't reach the AI. Try again." }
 },
 es:{
-  nav:"Navegación", tabHome:"Proyectos", tabNew:"Nuevo", tabPrices:"Mis precios", tabSettings:"Ajustes", back:"Volver",
+  nav:"Navegación", tabHome:"Inicio", tabProjects:"Mis proyectos", tabNew:"Nuevo", tabPrices:"Mis precios", tabSettings:"Ajustes", back:"Volver",
   savedAccount:"Guardado en tu cuenta", savedDevice:"Guardado en este dispositivo", loading:"Cargando tus presupuestos",
   heroA:"Foto de la obra.", heroB:"Costo real", heroC:"en minutos.",
   heroP:"Toma fotos del espacio, describe el trabajo y recibe materiales, mano de obra y total, partida por partida, con tus propios precios.",
@@ -372,6 +374,7 @@ es:{
   storageFull:"Almacenamiento lleno. Exporta un respaldo y elimina presupuestos viejos.", loadFail:"No pude cargar tus presupuestos ahora.",
   pickT:"Agregar de mi lista de precios", close:"Cerrar", notGiven:"no indicado", extraQ:"Notas adicionales",
   quoteT:"Presupuesto", validFor:"válido por 15 días", directCost:"Costo directo", durationL:"Duración estimada", daysN:"{n} día(s)",
+  recent:"Presupuestos recientes", seeAll:"Ver todos en Mis proyectos ({n})", projH:"Todos tus presupuestos", searchPh:"Buscar por nombre, lugar o descripción", noMatch:"Ningún presupuesto coincide con “{q}”.", noProjects:"Todavía no hay presupuestos. Toca Nuevo para cotizar tu primer trabajo.", draft:"Borrador", sortNew:"Más recientes", sortTotal:"Mayor total", sortName:"A–Z",
   genPdf:"Generar PDF", pdfMaking:"Creando el PDF…", pdfDone:"PDF listo.", pdfFail:"No se pudo crear el PDF. Revisa tu conexión e inténtalo de nuevo.",
   pdfPhotos:"Fotos de la obra", likely:"Rango probable", acceptT:"Aceptación", acceptP:"Al firmar abajo, el cliente acepta este presupuesto y sus condiciones.",
   sigClient:"Firma del cliente", sigDate:"Fecha", pageOf:"Página {a} de {b}", genWith:"Generado con TrueCost", preparedFor:"Preparado por",
@@ -388,7 +391,7 @@ es:{
     empty_completion:"La IA no respondió. Inténtalo de nuevo.", fallback:"No se pudo hablar con la IA. Inténtalo de nuevo." }
 },
 pt:{
-  nav:"Navegação", tabHome:"Projetos", tabNew:"Novo", tabPrices:"Meus preços", tabSettings:"Ajustes", back:"Voltar",
+  nav:"Navegação", tabHome:"Início", tabProjects:"Meus projetos", tabNew:"Novo", tabPrices:"Meus preços", tabSettings:"Ajustes", back:"Voltar",
   savedAccount:"Salvo na sua conta", savedDevice:"Salvo neste aparelho", loading:"Carregando seus orçamentos",
   heroA:"Foto da obra.", heroB:"Custo real", heroC:"em minutos.",
   heroP:"Tire fotos do ambiente, descreva o serviço e receba materiais, mão de obra e total, item por item, com os seus preços.",
@@ -453,6 +456,7 @@ pt:{
   storageFull:"Armazenamento cheio. Exporte um backup e exclua orçamentos antigos.", loadFail:"Não consegui carregar seus orçamentos agora.",
   pickT:"Adicionar da minha tabela", close:"Fechar", notGiven:"não informado", extraQ:"Observações adicionais",
   quoteT:"Orçamento", validFor:"válido por 15 dias", directCost:"Custo direto", durationL:"Prazo estimado", daysN:"{n} dia(s)",
+  recent:"Orçamentos recentes", seeAll:"Ver todos em Meus projetos ({n})", projH:"Todos os seus orçamentos", searchPh:"Buscar por nome, local ou descrição", noMatch:"Nenhum orçamento encontrado para “{q}”.", noProjects:"Nenhum orçamento ainda. Toque em Novo para orçar sua primeira obra.", draft:"Rascunho", sortNew:"Mais recentes", sortTotal:"Maior total", sortName:"A–Z",
   genPdf:"Gerar PDF", pdfMaking:"Criando o PDF…", pdfDone:"PDF pronto.", pdfFail:"Não consegui criar o PDF. Verifique a conexão e tente de novo.",
   pdfPhotos:"Fotos do local", likely:"Faixa provável", acceptT:"Aceite", acceptP:"Ao assinar abaixo, o cliente aceita este orçamento e suas condições.",
   sigClient:"Assinatura do cliente", sigDate:"Data", pageOf:"Página {a} de {b}", genWith:"Gerado com TrueCost", preparedFor:"Preparado por",
@@ -561,7 +565,7 @@ const Store = {
   async loadAll(){
     if(!this.db) return this.readLocal();
     const snap = await this.col().get(), out = {};
-    snap.docs.forEach(d => { if(d.exists) out[d.id] = d.data(); });
+    snap.docs.forEach(d => { if(d.exists) out[d.id] = clone(d.data()); });   // snapshots are frozen; the app edits its copy
     return out;
   },
   put(id, data){
@@ -820,7 +824,7 @@ $("#galIn").addEventListener("change", e => { addFiles(e.target.files); e.target
 /* ---------- navigation ---------- */
 function go(route){
   state.route = route; state.editing = null; state.confirmDelete = false; state.clientMsg = null;
-  if(["home","new","prices","settings"].includes(route.name)) state.tab = route.name;
+  if(["home","projects","new","prices","settings"].includes(route.name)) state.tab = route.name;
   if(route.name === "new" && !state.draft) newDraft();
   render(); window.scrollTo(0, 0);
 }
@@ -834,7 +838,7 @@ function render(){
   renderTop(); renderTabs();
   const v = $("#view"), r = state.route;
   if(!state.loaded){ v.innerHTML = `<div class="card pad think"><span class="eyebrow">${t("loading")}</span><div class="scan"></div></div>`; return; }
-  v.innerHTML = r.name === "home" ? vHome() : r.name === "new" ? vNew() : r.name === "project" ? vProject(getProject(r.id)) : r.name === "prices" ? vPrices() : vSettings();
+  v.innerHTML = r.name === "home" ? vHome() : r.name === "new" ? vNew() : r.name === "project" ? vProject(getProject(r.id)) : r.name === "projects" ? vProjects() : r.name === "prices" ? vPrices() : vSettings();
   const st = $("#stream"); if(st) st.scrollTop = st.scrollHeight;
 }
 function langSwitch(){
@@ -852,29 +856,47 @@ function renderTop(){
 function renderTabs(){
   const cur = state.tab;
   const b = (k, ic, lb, cls = "") => `<button class="tab ${cls}" data-act="tab" data-k="${k}" ${cur === k ? 'aria-current="page"' : ""}>${cls ? `<span class="dot">${ic}</span>` : ic}<span>${lb}</span></button>`;
-  $("#tabs").innerHTML = b("home", I.home, t("tabHome")) + b("new", I.cam, t("tabNew"), "cam") + b("prices", I.tag, t("tabPrices")) + b("settings", I.gear, t("tabSettings"));
+  $("#tabs").innerHTML = b("home", I.home, t("tabHome")) + b("projects", I.list, t("tabProjects")) + b("new", I.cam, t("tabNew"), "cam") + b("prices", I.tag, t("tabPrices")) + b("settings", I.gear, t("tabSettings"));
 }
 
+function projectRow(p){
+  const tt = p.estimate ? totals(p) : null, th = p.thumbs?.[0];
+  return `<button class="card pitem" data-act="open" data-id="${esc(p.id)}">
+    <span class="thumb" style="${th ? `background-image:url('${th}')` : ""}">${th ? "" : I.img.replace("<svg", '<svg width="24" height="24"')}</span>
+    <span class="grow"><span class="nm" style="display:block">${esc(p.name)}</span>
+      <span class="small muted">${p.example ? `<span class="badge ex">${t("example")}</span> ` : p.estimate ? "" : `<span class="badge">${t("draft")}</span> `}${esc(p.location ? p.location + " · " : "")}${fmtDate(p.updatedAt)}</span></span>
+    <span class="tot">${tt ? pm(p, tt.total) : "—"}</span></button>`;
+}
+const byNewest = (a, b) => b.updatedAt - a.updatedAt;
 function vHome(){
-  const list = [...state.projects].sort((a, b) => b.updatedAt - a.updatedAt);
+  const list = [...state.projects].sort(byNewest);
   if(!list.length) state.exampleCopy = buildExample();
-  const rows = (list.length ? list : [state.exampleCopy]).map(p => {
-    const tt = p.estimate ? totals(p) : null, th = p.thumbs?.[0];
-    return `<button class="card pitem" data-act="open" data-id="${esc(p.id)}">
-      <span class="thumb" style="${th ? `background-image:url('${th}')` : ""}">${th ? "" : I.img.replace("<svg", '<svg width="24" height="24"')}</span>
-      <span class="grow"><span class="nm" style="display:block">${esc(p.name)}</span>
-        <span class="small muted">${p.example ? `<span class="badge ex">${t("example")}</span> ` : ""}${fmtDate(p.updatedAt)}${p.estimate ? "" : t("waitingQ")}</span></span>
-      <span class="tot">${tt ? pm(p, tt.total) : "—"}</span></button>`;
-  }).join("");
+  const rows = (list.length ? list.slice(0, 3) : [state.exampleCopy]).map(projectRow).join("");
   return `
   <section class="hero"><span class="ruler" aria-hidden="true"></span>
     <h1>${t("heroA")}<br><b>${t("heroB")}</b> ${t("heroC")}</h1>
     <p>${t("heroP")}</p>
     <button class="btn primary" data-act="tab" data-k="new">${I.cam} ${t("newEstimate")}</button>
   </section>
-  <div class="row"><h2 style="font-size:20px" class="grow">${t("projects")}</h2><span class="small muted">${list.length ? (list.length === 1 ? t("oneEstimate") : t("nEstimates", { n:list.length })) : ""}</span></div>
+  <div class="row"><h2 style="font-size:20px" class="grow">${t("recent")}</h2></div>
   <div class="plist">${rows}</div>
-  ${list.length ? "" : `<p class="small muted" style="margin:0">${t("exampleNote")}</p>`}`;
+  ${list.length ? `<button class="btn" data-act="tab" data-k="projects">${I.list} ${t("seeAll", { n:list.length })}</button>` : `<p class="small muted" style="margin:0">${t("exampleNote")}</p>`}`;
+}
+function projectList(){
+  const q = (state.pq || "").trim().toLowerCase();
+  const sorters = { new: byNewest, total: (a, b) => (b.estimate ? totals(b).total : -1) - (a.estimate ? totals(a).total : -1), name: (a, b) => a.name.localeCompare(b.name, LOCALE[lang()]) };
+  const list = state.projects.filter(p => !q || [p.name, p.location, p.description].join(" ").toLowerCase().includes(q)).sort(sorters[state.psort || "new"]);
+  if(!state.projects.length) return `<div class="empty card">${t("noProjects")}</div>`;
+  if(!list.length) return `<div class="empty">${esc(t("noMatch", { q:state.pq }))}</div>`;
+  return list.map(projectRow).join("");
+}
+function vProjects(){
+  const n = state.projects.length, sort = state.psort || "new";
+  return `<div><span class="eyebrow">${t("tabProjects")} · ${n === 1 ? t("oneEstimate") : t("nEstimates", { n })}</span><h1 style="font-size:26px;margin-top:4px">${t("projH")}</h1></div>
+  ${n ? `<input class="in" id="psearch" type="search" placeholder="${esc(t("searchPh"))}" value="${esc(state.pq || "")}" aria-label="${esc(t("searchPh"))}">
+  <div class="seg" style="align-self:flex-start">${[["new","sortNew"],["total","sortTotal"],["name","sortName"]].map(([k, l]) => `<button data-act="psort" data-k="${k}" aria-pressed="${sort === k}">${t(l)}</button>`).join("")}</div>` : ""}
+  <div class="plist" id="plist">${projectList()}</div>
+  <button class="btn primary big" data-act="tab" data-k="new">${I.cam} ${t("newEstimate")}</button>`;
 }
 
 function aiBanner(){
@@ -1111,7 +1133,7 @@ async function doEstimate(){
     saveProject(p, true);
     d.photos.forEach(x => URL.revokeObjectURL(x.url));
     state.draft = null;
-    go({ name:"project", id:p.id }); state.tab = "home"; renderTabs();
+    go({ name:"project", id:p.id }); state.tab = "projects"; renderTabs();
     return;
   }catch(err){ if(err?.code !== "cancelled") toast(aiErr(err)); }
   render();
@@ -1329,11 +1351,12 @@ document.addEventListener("click", e => {
     case "tab": go({ name:b.dataset.k }); break;
     case "back":
       if(r.name === "new" && state.draft?.step === 2){ state.draft.step = 1; render(); }
-      else go({ name:"home" });
+      else go({ name: r.name === "project" && state.tab === "projects" ? "projects" : "home" });
       break;
     case "open": {
       if(b.dataset.id === "example") state.exampleCopy = buildExample();
-      go({ name:"project", id:b.dataset.id }); state.tab = "home"; renderTabs(); break; }
+      const from = state.tab === "projects" ? "projects" : "home";
+      go({ name:"project", id:b.dataset.id }); state.tab = from; renderTabs(); break; }
     case "cam": $("#camIn").click(); break;
     case "gal": $("#galIn").click(); break;
     case "rmph": { const d = state.draft; const i = d.photos.findIndex(x => x.id === b.dataset.id); if(i > -1){ URL.revokeObjectURL(d.photos[i].url); d.photos.splice(i, 1); } render(); break; }
@@ -1366,10 +1389,11 @@ document.addEventListener("click", e => {
     case "dup": { const c = clone(p); c.id = uid(); c.name = t("copyOf", { n:p.name }); c.createdAt = Date.now(); state.projects.push(c); saveProject(c, true); go({ name:"project", id:c.id }); toast(t("copyCreated")); break; }
     case "askdel": state.confirmDelete = true; render(); break;
     case "nodel": state.confirmDelete = false; render(); break;
-    case "dodel": { state.projects = state.projects.filter(x => x.id !== p.id); Store.del("p_" + p.id); go({ name:"home" }); toast(t("deleted")); break; }
+    case "dodel": { state.projects = state.projects.filter(x => x.id !== p.id); Store.del("p_" + p.id); go({ name:"projects" }); toast(t("deleted")); break; }
     case "pbdel": state.pricebook.splice(+b.dataset.i, 1); savePricebook(); render(); break;
     case "pick": { const pr = getProject(state.route.id); const it = state.pricebook[+b.dataset.i]; pr.estimate.groups[state.pbPick].items.push({ kind: /labor|mano de obra|m[aã]o de obra|servi/i.test(it.cat || "") ? "labor" : "material", name:it.name, qty:1, unit:it.unit, unitPrice:it.price, note:"" }); closePicker(); saveProject(pr); render(); break; }
     case "closepick": closePicker(); break;
+    case "psort": state.psort = b.dataset.k; render(); break;
     case "set": state.settings[b.dataset.k] = b.dataset.v; saveSettings(); render(); break;
     case "rmkey": try{ localStorage.removeItem(KEY_LS); }catch{} state.keyStatus = null; initAI(); render(); toast(t("keyRemoved")); break;
     case "testkey":
@@ -1391,6 +1415,7 @@ document.addEventListener("input", e => {
   if(el.id === "desc" && state.draft){ state.draft.description = el.value; const btn = document.querySelector('[data-act="analyze"]'); if(btn) btn.disabled = !state.sample || (!state.draft.photos.length && !el.value.trim()); return; }
   if(el.id === "loc" && state.draft){ state.draft.location = el.value; return; }
   if(el.id === "refine"){ state.refineDraft = el.value; return; }
+  if(el.id === "psearch"){ state.pq = el.value; $("#plist").innerHTML = projectList(); return; }
   if(act === "anscustom"){ state.draft.custom[el.dataset.q] = el.value; return; }
   if(act === "meas"){ state.draft.project.analysis.measurements[+el.dataset.i].value = num(el.value); return; }
   if(act === "setin"){ state.settings[el.dataset.k] = ["laborRate","contingency","markup","tax"].includes(el.dataset.k) ? num(el.value) : el.value; saveSettings(); return; }
